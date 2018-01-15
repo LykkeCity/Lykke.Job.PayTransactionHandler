@@ -1,0 +1,16 @@
+﻿{
+  "PayTransactionHandlerJob": {
+    "Db": {
+      "LogsConnString": "UseDevelopmentStorage=true"
+    },
+    "Rabbit": {
+      "ConnectionString": "amqp://guest:guest@localhost:5672"
+    }
+  },
+  "SlackNotifications": {
+    "AzureQueue": {
+      "ConnectionString": "UseDevelopmentStorage=true",
+      "QueueName": "slack-notifications"
+    }
+  }
+}

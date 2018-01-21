@@ -13,18 +13,18 @@ namespace Lykke.Job.PayTransactionHandler.Services
 
     public class StartupManager : IStartupManager
     {
+        private readonly IWalletsStateCacheManager _walletsStateCacheWarmer;
         private readonly ILog _log;
 
-        public StartupManager(ILog log)
+        public StartupManager(IWalletsStateCacheManager walletsStateCacheWarmer, ILog log)
         {
+            _walletsStateCacheWarmer = walletsStateCacheWarmer;
             _log = log;
         }
 
         public async Task StartAsync()
         {
-            // TODO: Implement your startup logic here. Good idea is to log every step
-
-            await Task.CompletedTask;
+            await _walletsStateCacheWarmer.Warmup();
         }
     }
 }

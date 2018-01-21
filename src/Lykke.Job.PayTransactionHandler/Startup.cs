@@ -13,7 +13,6 @@ using Lykke.Job.PayTransactionHandler.Modules;
 using Lykke.Logs;
 using Lykke.SettingsReader;
 using Lykke.SlackNotification.AzureQueue;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -59,7 +58,7 @@ namespace Lykke.Job.PayTransactionHandler
 
                 Log = CreateLogWithSlack(services, appSettings);
 
-                builder.RegisterModule(new JobModule(appSettings.CurrentValue.PayTransactionHandlerJob, appSettings.Nested(x => x.PayTransactionHandlerJob.Db), Log));
+                builder.RegisterModule(new JobModule(appSettings.CurrentValue, appSettings.Nested(x => x.PayTransactionHandlerJob.Db), Log));
 
                 builder.Populate(services);
 

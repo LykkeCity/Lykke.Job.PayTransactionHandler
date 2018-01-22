@@ -32,13 +32,35 @@ namespace Lykke.Job.PayTransactionHandler.Services
             {
                 var initialTx = initialState.SingleOrDefault(x => x.Id == tx.Id);
 
+                _log.WriteInfoAsync(nameof(TransactionStateDiffService), nameof(Diff),
+                    $"Diffing transaction {tx.Id}. Wallet {tx.WalletAddress}. Confirmations: {tx.Confirmations}");
+
                 if (initialTx?.Confirmations >= _confirmationsLimit)
+                {
+                    _log.WriteInfoAsync(nameof(TransactionStateDiffService), nameof(Diff),
+                        $"Confirmations limit reached ({_confirmationsLimit}), will skip transaction");
+
                     continue;
+                }
 
                 var isNew = initialTx == null;
 
+                if (isNew)
+                {
+                    _log.WriteInfoAsync(nameof(TransactionStateDiffService), nameof(Diff),
+                        $"Found new transaction: {tx.Id}");
+                }
+                else
+                {
+                    _log.WriteInfoAsync(nameof(TransactionStateDiffService), nameof(Diff),
+                        $"Not new transaction. Will try to compare");
+                }
+
                 if (!initialState.Any(x => tx.Equals(x)))
                 {
+                    _log.WriteInfoAsync(nameof(TransactionStateDiffService), nameof(Diff),
+                        $"Transaction {tx.Id} has changes.");
+
                     result.Add(new DiffResult<BlockchainTransaction>
                     {
                         CompareState = isNew ? DiffState.New : DiffState.Updated,

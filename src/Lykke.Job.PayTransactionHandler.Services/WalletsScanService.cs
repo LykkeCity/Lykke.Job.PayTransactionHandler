@@ -29,7 +29,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
                     WalletAddress = WalletAddress,
                     Amount = (double) x.Amount.ToDecimal(MoneyUnit.Satoshi),
                     Id = x.TransactionId.ToString(),
-                    BlockId = x.BlockId.ToString(),
+                    BlockId = x.BlockId?.ToString(),
                     Confirmations = x.Confirmations
                 });
             }
@@ -71,10 +71,9 @@ namespace Lykke.Job.PayTransactionHandler.Services
 
             var updatedTransactions = _diffService.Diff(initialTransactions, currentTransactions);
 
-            await Task.WhenAll(
-                Broadcast(updatedTransactions),
-                _walletsStateCacheManager.UpdateTransactions(currentTransactions)
-            );
+            await Broadcast(updatedTransactions);
+
+            await _walletsStateCacheManager.UpdateTransactions(currentTransactions);
         }
 
         private async Task Broadcast(IEnumerable<DiffResult<BlockchainTransaction>> updated)
@@ -126,17 +125,18 @@ namespace Lykke.Job.PayTransactionHandler.Services
             foreach (var batch in addresses.Batch(BatchPieceSize))
             {
                 //todo: use continuation token to get full list of operations
-                await Task.WhenAll(batch.Select(address => _qBitNinjaClient.GetBalance(address).ContinueWith(t =>
-                {
-                    lock (balances)
+                await Task.WhenAll(batch.Select(address => _qBitNinjaClient.GetBalance(BitcoinAddress.Create(address))
+                    .ContinueWith(t =>
                     {
-                        balances.Add(new WalletBalanceModel
+                        lock (balances)
                         {
-                            WalletAddress = address,
-                            Balance = t.Result
-                        });
-                    }
-                })));
+                            balances.Add(new WalletBalanceModel
+                            {
+                                WalletAddress = address,
+                                Balance = t.Result
+                            });
+                        }
+                    })));
             }
 
             return balances.SelectMany(x => x.GetTransactions());

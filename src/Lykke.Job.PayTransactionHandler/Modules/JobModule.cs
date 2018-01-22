@@ -108,20 +108,26 @@ namespace Lykke.Job.PayTransactionHandler.Modules
         private void RegisterDomainServices(ContainerBuilder builder)
         {
             builder.RegisterType<WalletsScanService>()
-                .As<IWalletsScanService>();
+                .As<IWalletsScanService>()
+                .SingleInstance();
 
             builder.RegisterType<InMemoryStorage<WalletState>>()
-                .As<IStorage<WalletState>>();
+                .As<IStorage<WalletState>>()
+                .SingleInstance();
 
             builder.RegisterType<WalletsStateCache>()
-                .As<IWalletsStateCache>();
+                .As<IWalletsStateCache>()
+                .SingleInstance();
 
             builder.RegisterType<WalletsStateCacheManager>()
-                .As<IWalletsStateCacheManager>();
+                .As<IWalletsStateCacheManager>()
+                .SingleInstance();
 
             builder.RegisterType<TransactionStateDiffService>()
-                .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.Blockchain.ConfirmationsToSucceed))
-                .As<IDiffService<BlockchainTransaction>>();
+                .WithParameter(
+                    TypedParameter.From(_settings.PayTransactionHandlerJob.Blockchain.ConfirmationsToSucceed))
+                .As<IDiffService<BlockchainTransaction>>()
+                .SingleInstance();
         }
     }
 }

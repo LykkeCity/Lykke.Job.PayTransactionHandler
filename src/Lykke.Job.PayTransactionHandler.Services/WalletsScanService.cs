@@ -60,6 +60,8 @@ namespace Lykke.Job.PayTransactionHandler.Services
 
         public async Task Execute()
         {
+            await _log.WriteInfoAsync(nameof(WalletsScanService), nameof(Execute), string.Empty, "Scan execution started");
+
             //todo: move cleaning out of this service
             await _walletsStateCacheManager.ClearOutOfDate();
 
@@ -120,6 +122,8 @@ namespace Lykke.Job.PayTransactionHandler.Services
 
         private async Task<IEnumerable<BlockchainTransaction>> GetTransactions(IEnumerable<string> addresses)
         {
+            await _log.WriteInfoAsync(nameof(WalletsScanService), nameof(GetTransactions), string.Empty, "Getting transactions");
+
             var balances = new List<WalletBalanceModel>();
 
             foreach (var batch in addresses.Batch(BatchPieceSize))

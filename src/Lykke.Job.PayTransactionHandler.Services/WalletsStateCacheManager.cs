@@ -44,6 +44,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
             foreach (var trx in transactions.GroupBy(x => x.WalletAddress))
             {
                 var walletState = walletsState.Single(x => x.Address == trx.Key);
+
                 walletState.Transactions = trx;
 
                 await _walletsStateCache.Update(walletState);

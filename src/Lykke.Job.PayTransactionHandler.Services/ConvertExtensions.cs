@@ -24,7 +24,9 @@ namespace Lykke.Job.PayTransactionHandler.Services
                 Amount = src.Amount,
                 BlockId = src.BlockId,
                 Confirmations = src.Confirmations,
-                WalletAddress = src.WalletAddress
+                WalletAddress = src.WalletAddress,
+                Blockchain = src.Blockchain,
+                AssetId = src.AssetId
             };
         }
     }

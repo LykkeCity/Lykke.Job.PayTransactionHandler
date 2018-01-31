@@ -28,6 +28,8 @@ namespace Lykke.Job.PayTransactionHandler.Services
                 {
                     WalletAddress = WalletAddress,
                     Amount = (double) x.Amount.ToDecimal(MoneyUnit.Satoshi),
+                    AssetId = nameof(MoneyUnit.Satoshi),
+                    Blockchain = "Bitcoin",
                     Id = x.TransactionId.ToString(),
                     BlockId = x.BlockId?.ToString(),
                     Confirmations = x.Confirmations
@@ -95,7 +97,9 @@ namespace Lykke.Job.PayTransactionHandler.Services
                             FirstSeen = txDetails.FirstSeen.DateTime,
                             TransactionId = tx.Id,
                             Confirmations = tx.Confirmations,
-                            BlockId = tx.BlockId
+                            BlockId = tx.BlockId,
+                            Blockchain = tx.Blockchain,
+                            AssetId = tx.AssetId
                         });
 
                         break;

@@ -1,6 +1,7 @@
 ﻿using Lykke.Job.PayTransactionHandler.Core.Settings.JobSettings;
 using Lykke.Job.PayTransactionHandler.Core.Settings.SlackNotifications;
 using Lykke.Service.PayInternal.Client;
+using Lykke.SettingsReader.Attributes;
 
 namespace Lykke.Job.PayTransactionHandler.Core.Settings
 {
@@ -14,6 +15,7 @@ namespace Lykke.Job.PayTransactionHandler.Core.Settings
 
     public class NinjaServiceClientSettings
     {
+        [HttpCheck("/")]
         public string ServiceUrl { get; set; }
     }
 }

@@ -30,7 +30,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
 
             foreach (var tx in updatedState)
             {
-                var initialTx = initialState.SingleOrDefault(x => x.Id == tx.Id);
+                var initialTx = initialState.SingleOrDefault(x => x.Id == tx.Id && x.WalletAddress == tx.WalletAddress);
 
                 _log.WriteInfoAsync(nameof(TransactionStateDiffService), nameof(Diff),
                     $"Diffing transaction {tx.Id}. Wallet {tx.WalletAddress}. Confirmations: {tx.Confirmations}");

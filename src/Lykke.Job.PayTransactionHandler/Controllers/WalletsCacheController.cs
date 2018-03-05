@@ -13,10 +13,10 @@ namespace Lykke.Job.PayTransactionHandler.Controllers
     [Route("api/[controller]")]
     public class WalletsCacheController : Controller
     {
-        private readonly IWalletsStateCacheManager _walletsStateCacheManager;
+        private readonly IStateCacheManager<WalletState> _walletsStateCacheManager;
         private readonly ILog _log;
 
-        public WalletsCacheController(IWalletsStateCacheManager walletsStateCacheManager, ILog log)
+        public WalletsCacheController(IStateCacheManager<WalletState> walletsStateCacheManager, ILog log)
         {
             _walletsStateCacheManager = walletsStateCacheManager ??
                                         throw new ArgumentNullException(nameof(walletsStateCacheManager));

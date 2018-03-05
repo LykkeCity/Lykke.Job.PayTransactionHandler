@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
 using Lykke.Service.PayInternal.Client.Models;
 

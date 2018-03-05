@@ -8,11 +8,11 @@ namespace Lykke.Job.PayTransactionHandler.PeriodicalHandlers
 {
     public class WalletsScanHandler : TimerPeriod
     {
-        private readonly IWalletsScanService _walletsScanService;
+        private readonly IScanService _walletsScanService;
         private readonly ILog _log;
 
         public WalletsScanHandler(
-            IWalletsScanService walletsScanService,
+            IScanService walletsScanService,
             TimeSpan period,
             ILog log) :
             base(nameof(WalletsScanHandler), (int)period.TotalMilliseconds, log)

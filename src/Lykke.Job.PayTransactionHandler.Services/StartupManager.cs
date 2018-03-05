@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Common.Log;
 using Lykke.Job.PayTransactionHandler.Core.Services;
+using Lykke.Job.PayTransactionHandler.Services.Wallets;
 
 namespace Lykke.Job.PayTransactionHandler.Services
 {
@@ -13,10 +14,10 @@ namespace Lykke.Job.PayTransactionHandler.Services
 
     public class StartupManager : IStartupManager
     {
-        private readonly IWalletsStateCacheManager _walletsStateCacheWarmer;
+        private readonly IStateCacheManager<WalletsStateCache> _walletsStateCacheWarmer;
         private readonly ILog _log;
 
-        public StartupManager(IWalletsStateCacheManager walletsStateCacheWarmer, ILog log)
+        public StartupManager(IStateCacheManager<WalletsStateCache> walletsStateCacheWarmer, ILog log)
         {
             _walletsStateCacheWarmer = walletsStateCacheWarmer;
             _log = log;

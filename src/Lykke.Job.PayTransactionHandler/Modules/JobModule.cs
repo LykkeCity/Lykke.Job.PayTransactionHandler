@@ -13,6 +13,9 @@ using Lykke.Job.PayTransactionHandler.Core.Settings;
 using Lykke.Service.PayInternal.Client;
 using Microsoft.Extensions.DependencyInjection;
 using QBitNinja.Client;
+using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
+using Lykke.Job.PayTransactionHandler.Services.CommonServices;
+using Lykke.Job.PayTransactionHandler.Services.Wallets;
 
 namespace Lykke.Job.PayTransactionHandler.Modules
 {
@@ -50,10 +53,13 @@ namespace Lykke.Job.PayTransactionHandler.Modules
                 .SingleInstance();
 
             builder.RegisterType<StartupManager>()
-                .As<IStartupManager>();
+                .As<IStartupManager>()
+                .SingleInstance();
 
             builder.RegisterType<ShutdownManager>()
-                .As<IShutdownManager>();
+                .As<IShutdownManager>()
+                .SingleInstance();
+
             RegisterPeriodicalHandlers(builder);
             RegisterRabbitMqSubscribers(builder);
             RegisterRabbitMqPublishers(builder);
@@ -108,7 +114,7 @@ namespace Lykke.Job.PayTransactionHandler.Modules
         private void RegisterDomainServices(ContainerBuilder builder)
         {
             builder.RegisterType<WalletsScanService>()
-                .As<IWalletsScanService>()
+                .As<IScanService>()
                 .SingleInstance();
 
             builder.RegisterType<InMemoryStorage<WalletState>>()
@@ -116,11 +122,11 @@ namespace Lykke.Job.PayTransactionHandler.Modules
                 .SingleInstance();
 
             builder.RegisterType<WalletsStateCache>()
-                .As<IWalletsStateCache>()
+                .As<IStateCache<WalletState>>()
                 .SingleInstance();
 
             builder.RegisterType<WalletsStateCacheManager>()
-                .As<IWalletsStateCacheManager>()
+                .As<IStateCacheManager<WalletState>>()
                 .SingleInstance();
 
             builder.RegisterType<TransactionStateDiffService>()

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.8
+VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Job.PayTransactionHandler", "src\Lykke.Job.PayTransactionHandler\Lykke.Job.PayTransactionHandler.csproj", "{5566FD3E-0DB6-4BF3-A98D-4A1181B3E02C}"
 EndProject
@@ -21,7 +21,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Job.PayTransactionHan
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4. Contract", "4. Contract", "{579F7EFC-B394-4D2B-9F42-C1A4293F5C2B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lykke.Job.PayTransactionHandler.Contract", "contract\Lykke.Job.PayTransactionHandler.Contract\Lykke.Job.PayTransactionHandler.Contract.csproj", "{58FEDF76-9CC9-4B3B-877F-0795CE7C50F9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Job.PayTransactionHandler.Contract", "contract\Lykke.Job.PayTransactionHandler.Contract\Lykke.Job.PayTransactionHandler.Contract.csproj", "{58FEDF76-9CC9-4B3B-877F-0795CE7C50F9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2868AF72-A636-4363-8779-45CFBBC71FBC}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

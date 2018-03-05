@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using Common.Log;
+using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.DiffService;
-using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 
-namespace Lykke.Job.PayTransactionHandler.Services
+namespace Lykke.Job.PayTransactionHandler.Services.CommonServices
 {
     /// <summary>
     /// Returns transactions updated compared to initial transactions state or absent in initial state.

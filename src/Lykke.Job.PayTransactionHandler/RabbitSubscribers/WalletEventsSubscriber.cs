@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Autofac;
 using Common;
 using Common.Log;
+using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Job.PayTransactionHandler.Core.Settings.JobSettings;
@@ -18,9 +19,9 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
         private readonly ILog _log;
         private readonly RabbitMqSettings _settings;
         private RabbitMqSubscriber<NewWalletMessage> _subscriber;
-        private readonly IWalletsStateCache _walletsStateCache;
+        private readonly IStateCache<WalletState> _walletsStateCache;
 
-        public WalletEventsSubscriber(ILog log, RabbitMqSettings settings, IWalletsStateCache walletsStateCache)
+        public WalletEventsSubscriber(ILog log, RabbitMqSettings settings, IStateCache<WalletState> walletsStateCache)
         {
             _log = log;
             _settings = settings;

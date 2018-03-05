@@ -2,7 +2,7 @@
 
 namespace Lykke.Job.PayTransactionHandler.Core.Services
 {
-    public interface IWalletsScanService
+    public interface IScanService
     {
         Task Execute();
     }

@@ -90,7 +90,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
 
                         var txDetails = await _qBitNinjaClient.GetTransaction(new uint256(tx.Id));
 
-                        await _payInternalClient.CreateTransaction(new CreateTransactionRequest
+                        await _payInternalClient.CreatePaymentTransaction(new CreateTransactionRequest
                         {
                             WalletAddress = tx.WalletAddress,
                             Amount = tx.Amount,
@@ -99,7 +99,8 @@ namespace Lykke.Job.PayTransactionHandler.Services
                             Confirmations = tx.Confirmations,
                             BlockId = tx.BlockId,
                             Blockchain = tx.Blockchain,
-                            AssetId = tx.AssetId
+                            AssetId = tx.AssetId,
+                            SourceWalletAddresses = txDetails.GetSourceWalletAddresses().Select(x => x.ToString()).ToArray()
                         });
 
                         break;

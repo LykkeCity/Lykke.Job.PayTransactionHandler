@@ -99,7 +99,8 @@ namespace Lykke.Job.PayTransactionHandler.Services
                             Confirmations = tx.Confirmations,
                             BlockId = tx.BlockId,
                             Blockchain = tx.Blockchain,
-                            AssetId = tx.AssetId
+                            AssetId = tx.AssetId,
+                            SourceWalletAddresses = txDetails.GetSourceWalletAddresses().Select(x => x.ToString()).ToArray()
                         });
 
                         break;

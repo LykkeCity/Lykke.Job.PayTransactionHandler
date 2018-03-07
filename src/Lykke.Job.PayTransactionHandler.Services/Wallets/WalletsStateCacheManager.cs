@@ -11,13 +11,13 @@ using Lykke.Service.PayInternal.Client;
 
 namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 {
-    public class WalletsStateCacheManager : StateCacheManagerBase<WalletState>
+    public class WalletsStateCacheManager : StateCacheManagerBase<WalletState, PaymentBcnTransaction>
     {
         public WalletsStateCacheManager(
-            IStateCache<WalletState> walletsStateCache,
+            ICache<WalletState> walletsCache,
             IPayInternalClient payInternalClient,
             ILog log) : base(
-                walletsStateCache,
+                walletsCache,
                 payInternalClient,
                 log)
         {
@@ -25,18 +25,18 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
         public override async Task Warmup()
         {
-            await _log.WriteInfoAsync(nameof(WalletsStateCacheManager), nameof(Warmup), "Warming up cache with wallets");
+            await Log.WriteInfoAsync(nameof(WalletsStateCacheManager), nameof(Warmup), "Warming up cache with wallets");
 
-            var wallets = await _payInternalClient.GetNotExpiredWalletsAsync();
+            var wallets = (await PayInternalClient.GetNotExpiredWalletsAsync()).ToList();
 
-            await _log.WriteInfoAsync(nameof(WalletsStateCacheManager), nameof(Warmup), $"Not expired wallets count = {wallets.Count()}");
+            await Log.WriteInfoAsync(nameof(WalletsStateCacheManager), nameof(Warmup), $"Not expired wallets count = {wallets.Count}");
 
-            await _stateCache.AddRange(wallets.Select(x => x.ToDomain()));
+            await Cache.AddRange(wallets.Select(x => x.ToDomain()));
         }
 
-        public override async Task UpdateTransactions(IEnumerable<BlockchainTransaction> transactions)
+        public override async Task UpdateTransactions(IEnumerable<PaymentBcnTransaction> transactions)
         {
-            var walletsState = (await _stateCache.Get()).ToList();
+            var walletsState = (await Cache.Get()).ToList();
 
             foreach (var trx in transactions.GroupBy(x => x.WalletAddress))
             {
@@ -44,21 +44,21 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
                 walletState.Transactions = trx;
 
-                await _stateCache.Update(walletState);
+                await Cache.Update(walletState);
 
-                await _log.WriteInfoAsync(nameof(WalletsStateCacheManager), nameof(UpdateTransactions), $"Updated wallet {trx.Key} in cache");
+                await Log.WriteInfoAsync(nameof(WalletsStateCacheManager), nameof(UpdateTransactions), $"Updated wallet {trx.Key} in cache");
             }
         }
 
         public override async Task ClearOutOfDate()
         {
-            var walletsState = (await _stateCache.Get()).ToList();
+            var walletsState = (await Cache.Get()).ToList();
 
             foreach (var walletState in walletsState.Where(x => x.DueDate <= DateTime.UtcNow))
             {
-                await _stateCache.Remove(walletState);
+                await Cache.Remove(walletState);
 
-                await _log.WriteInfoAsync(nameof(WalletsStateCacheManager), nameof(ClearOutOfDate), $"Cleared wallet {walletState.Address} from cache with dudate = {walletState.DueDate}");
+                await Log.WriteInfoAsync(nameof(WalletsStateCacheManager), nameof(ClearOutOfDate), $"Cleared wallet {walletState.Address} from cache with dudate = {walletState.DueDate}");
             }
         }
     }

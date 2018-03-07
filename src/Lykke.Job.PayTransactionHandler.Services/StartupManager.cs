@@ -1,31 +1,41 @@
 ﻿using System.Threading.Tasks;
 using Common.Log;
+using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
+using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
+using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
-using Lykke.Job.PayTransactionHandler.Services.Wallets;
 
 namespace Lykke.Job.PayTransactionHandler.Services
 {
-    // NOTE: Sometimes, startup process which is expressed explicitly is not just better, 
-    // but the only way. If this is your case, use this class to manage startup.
-    // For example, sometimes some state should be restored before any periodical handler will be started, 
-    // or any incoming message will be processed and so on.
-    // Do not forget to remove As<IStartable>() and AutoActivate() from DI registartions of services, 
-    // which you want to startup explicitly.
-
     public class StartupManager : IStartupManager
     {
-        private readonly IStateCacheManager<WalletsStateCache> _walletsStateCacheWarmer;
+        private readonly ITransactionStateCacheManager<WalletState, PaymentBcnTransaction> _walletsStateCacheWarmer;
+        private readonly ITransactionStateCacheManager<TransactionState, BcnTransaction> _transactionsStateCacheWarmer;
         private readonly ILog _log;
 
-        public StartupManager(IStateCacheManager<WalletsStateCache> walletsStateCacheWarmer, ILog log)
+        public StartupManager(
+            ITransactionStateCacheManager<WalletState, PaymentBcnTransaction> walletsStateCacheWarmer, 
+            ITransactionStateCacheManager<TransactionState, BcnTransaction> transactionsStateCacheWarmer,
+            ILog log)
         {
             _walletsStateCacheWarmer = walletsStateCacheWarmer;
+            _transactionsStateCacheWarmer = transactionsStateCacheWarmer;
             _log = log;
         }
 
         public async Task StartAsync()
         {
+            await _log.WriteInfoAsync(nameof(StartupManager), nameof(StartAsync), "Warming up wallets cache ...");
+
             await _walletsStateCacheWarmer.Warmup();
+
+            await _log.WriteInfoAsync(nameof(StartupManager), nameof(StartAsync), "Done.");
+
+            await _log.WriteInfoAsync(nameof(StartupManager), nameof(StartAsync), "Warming up transactions cache ...");
+
+            await _transactionsStateCacheWarmer.Warmup();
+
+            await _log.WriteInfoAsync(nameof(StartupManager), nameof(StartAsync), "Done.");
         }
     }
 }

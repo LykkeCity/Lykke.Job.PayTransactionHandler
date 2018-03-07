@@ -6,14 +6,14 @@ using System.Linq;
 
 namespace Lykke.Job.PayTransactionHandler.Services.CommonModels
 {
-    class CommonBalanceModel
+    internal class CommonBalanceModel
     {
         public string WalletAddress { get; set; }
         public BalanceModel Balance { get; set; }
 
-        public IEnumerable<BlockchainTransaction> GetTransactions()
+        public IEnumerable<PaymentBcnTransaction> GetTransactions()
         {
-            return Balance?.Operations?.Select(x => new BlockchainTransaction
+            return Balance?.Operations?.Select(x => new PaymentBcnTransaction
             {
                 WalletAddress = WalletAddress,
                 Amount = (double)x.Amount.ToDecimal(MoneyUnit.Satoshi),

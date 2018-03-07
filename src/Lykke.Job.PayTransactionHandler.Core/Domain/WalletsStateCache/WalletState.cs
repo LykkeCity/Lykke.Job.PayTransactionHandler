@@ -8,6 +8,6 @@ namespace Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache
     {
         public string Address { get; set; }
         public DateTime DueDate { get; set; }
-        public IEnumerable<BlockchainTransaction> Transactions { get; set; }
+        public IEnumerable<PaymentBcnTransaction> Transactions { get; set; }
     }
 }

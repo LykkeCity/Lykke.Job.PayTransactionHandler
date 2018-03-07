@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Common.Log;
+using Lykke.Job.PayTransactionHandler.Core;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Job.PayTransactionHandler.Core.Settings.JobSettings;
@@ -8,13 +9,14 @@ using Lykke.Job.PayTransactionHandler.Services;
 using Lykke.SettingsReader;
 using Lykke.Job.PayTransactionHandler.PeriodicalHandlers;
 using Lykke.Job.PayTransactionHandler.RabbitSubscribers;
-using Lykke.Job.PayTransactionHandler.RabbitPublishers;
 using Lykke.Job.PayTransactionHandler.Core.Settings;
 using Lykke.Service.PayInternal.Client;
 using Microsoft.Extensions.DependencyInjection;
 using QBitNinja.Client;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
+using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
 using Lykke.Job.PayTransactionHandler.Services.CommonServices;
+using Lykke.Job.PayTransactionHandler.Services.Transactions;
 using Lykke.Job.PayTransactionHandler.Services.Wallets;
 
 namespace Lykke.Job.PayTransactionHandler.Modules
@@ -38,12 +40,6 @@ namespace Lykke.Job.PayTransactionHandler.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
-            // NOTE: Do not register entire settings in container, pass necessary settings to services which requires them
-            // ex:
-            // builder.RegisterType<QuotesPublisher>()
-            //  .As<IQuotesPublisher>()
-            //  .WithParameter(TypedParameter.From(_settings.Rabbit.ConnectionString))
-
             builder.RegisterInstance(_log)
                 .As<ILog>()
                 .SingleInstance();
@@ -61,9 +57,11 @@ namespace Lykke.Job.PayTransactionHandler.Modules
                 .SingleInstance();
 
             RegisterPeriodicalHandlers(builder);
+
             RegisterRabbitMqSubscribers(builder);
-            RegisterRabbitMqPublishers(builder);
+
             RegisterServiceClients(builder);
+
             RegisterDomainServices(builder);
 
             builder.Populate(_services);
@@ -71,11 +69,15 @@ namespace Lykke.Job.PayTransactionHandler.Modules
 
         private void RegisterPeriodicalHandlers(ContainerBuilder builder)
         {
-            // TODO: You should register each periodical handler in DI container as IStartable singleton and autoactivate it
-
             builder.RegisterType<WalletsScanHandler>()
                 .As<IStartable>()
                 .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.WalletsScanPeriod))
+                .AutoActivate()
+                .SingleInstance();
+
+            builder.RegisterType<TransactionsScanHandler>()
+                .As<IStartable>()
+                .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.TransactionsScanPeriod))
                 .AutoActivate()
                 .SingleInstance();
         }
@@ -87,18 +89,12 @@ namespace Lykke.Job.PayTransactionHandler.Modules
                 .AutoActivate()
                 .SingleInstance()
                 .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.Rabbit));
-        }
 
-        private void RegisterRabbitMqPublishers(ContainerBuilder builder)
-        {
-            // TODO: You should register each publisher in DI container as publisher specific interface and as IStartable,
-            // as singleton and do not autoactivate it
-
-            builder.RegisterType<MyRabbitPublisher>()
-                .As<IMyRabbitPublisher>()
+            builder.RegisterType<TransactionEventsSubscriber>()
                 .As<IStartable>()
+                .AutoActivate()
                 .SingleInstance()
-                .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.Rabbit.ConnectionString));
+                .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.Rabbit));
         }
 
         private void RegisterServiceClients(ContainerBuilder builder)
@@ -114,25 +110,51 @@ namespace Lykke.Job.PayTransactionHandler.Modules
         private void RegisterDomainServices(ContainerBuilder builder)
         {
             builder.RegisterType<WalletsScanService>()
-                .As<IScanService>()
+                .Keyed<IScanService>(BlockchainScanType.Wallet)
+                .SingleInstance();
+
+            builder.RegisterType<TransactionsScanService>()
+                .Keyed<IScanService>(BlockchainScanType.Transaction)
+                .SingleInstance();
+
+            builder.RegisterType<BlockchainScanerProvider>()
+                .As<IBlockchainScanerProvider>()
                 .SingleInstance();
 
             builder.RegisterType<InMemoryStorage<WalletState>>()
                 .As<IStorage<WalletState>>()
                 .SingleInstance();
 
-            builder.RegisterType<WalletsStateCache>()
-                .As<IStateCache<WalletState>>()
+            builder.RegisterType<InMemoryStorage<TransactionState>>()
+                .As<IStorage<TransactionState>>()
+                .SingleInstance();
+
+            builder.RegisterType<WalletsCache>()
+                .As<ICache<WalletState>>()
+                .SingleInstance();
+
+            builder.RegisterType<TransactionsCache>()
+                .As<ICache<TransactionState>>()
                 .SingleInstance();
 
             builder.RegisterType<WalletsStateCacheManager>()
-                .As<IStateCacheManager<WalletState>>()
+                .As<ITransactionStateCacheManager<WalletState, PaymentBcnTransaction>>()
                 .SingleInstance();
 
-            builder.RegisterType<TransactionStateDiffService>()
+            builder.RegisterType<TransactionsStateCacheManager>()
+                .As<ITransactionStateCacheManager<TransactionState, BcnTransaction>>()
+                .SingleInstance();
+
+            builder.RegisterType<PaymentTxStateDiffService>()
                 .WithParameter(
                     TypedParameter.From(_settings.PayTransactionHandlerJob.Blockchain.ConfirmationsToSucceed))
-                .As<IDiffService<BlockchainTransaction>>()
+                .As<IDiffService<PaymentBcnTransaction>>()
+                .SingleInstance();
+
+            builder.RegisterType<TxStateDiffService>()
+                .WithParameter(
+                    TypedParameter.From(_settings.PayTransactionHandlerJob.Blockchain.ConfirmationsToSucceed))
+                .As<IDiffService<BcnTransaction>>()
                 .SingleInstance();
         }
     }

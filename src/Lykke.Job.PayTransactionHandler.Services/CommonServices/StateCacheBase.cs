@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 
 namespace Lykke.Job.PayTransactionHandler.Services.CommonServices
 {
-    public abstract class StateCacheBase<T> : IStateCache<T>
+    public abstract class CacheBase<T> : ICache<T>
     {
-        protected readonly IStorage<T> _storage;
+        protected readonly IStorage<T> Storage;
 
-        public StateCacheBase(IStorage<T> storage) =>
-            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+        protected CacheBase(IStorage<T> storage)
+        {
+            Storage = storage ?? throw new ArgumentNullException(nameof(storage));
+        }
 
         public async Task<IEnumerable<T>> Get() =>
-            await _storage.Get();
+            await Storage.Get();
 
         public abstract Task Add(T item);
 

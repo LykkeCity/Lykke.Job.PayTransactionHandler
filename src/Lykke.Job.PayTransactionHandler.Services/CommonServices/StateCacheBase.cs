@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Lykke.Job.PayTransactionHandler.Core.Services;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Lykke.Job.PayTransactionHandler.Services.CommonServices
 {

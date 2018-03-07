@@ -25,11 +25,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
         public override async Task Warmup()
         {
-            await Log.WriteInfoAsync(nameof(WalletsStateCacheManager), nameof(Warmup), "Warming up cache with wallets");
-
             var wallets = (await PayInternalClient.GetNotExpiredWalletsAsync()).ToList();
-
-            await Log.WriteInfoAsync(nameof(WalletsStateCacheManager), nameof(Warmup), $"Not expired wallets count = {wallets.Count}");
 
             await Cache.AddRange(wallets.Select(x => x.ToDomain()));
         }

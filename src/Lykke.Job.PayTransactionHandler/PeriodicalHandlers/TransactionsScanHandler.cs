@@ -24,7 +24,7 @@ namespace Lykke.Job.PayTransactionHandler.PeriodicalHandlers
 
         public override async Task Execute()
         {
-            IScanService scanService = _scanServiceProvider.Get(BlockchainScanType.Transaction.ToString());
+            IScanService scanService = _scanServiceProvider.Get(BlockchainScanType.Transaction);
 
             await scanService.Execute();
         }

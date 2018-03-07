@@ -2,6 +2,6 @@
 {
     public interface IBlockchainScanerProvider
     {
-        IScanService Get(string scanType);
+        IScanService Get(BlockchainScanType scanType);
     }
 }

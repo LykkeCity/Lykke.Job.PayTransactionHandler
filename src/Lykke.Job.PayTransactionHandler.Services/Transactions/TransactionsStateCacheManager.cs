@@ -59,15 +59,9 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
 
         public override async Task Warmup()
         {
-            await Log.WriteInfoAsync(nameof(TransactionsStateCacheManager), nameof(Warmup),
-                "Warming up cache with transactions");
-
             // todo: call PayInternal to get not expired transactions
             var transactions = Enumerable.Empty<TransactionStateResponse>().ToList();
 
-            await Log.WriteInfoAsync(nameof(TransactionsStateCacheManager), nameof(Warmup),
-                $"Not expired transactions count = {transactions.Count}");
-            
             await Cache.AddRange(transactions.Select(x => new TransactionState {Transaction = x.ToDomainTransaction()}));
         }
     }

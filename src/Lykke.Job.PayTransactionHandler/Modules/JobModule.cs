@@ -143,6 +143,7 @@ namespace Lykke.Job.PayTransactionHandler.Modules
 
             builder.RegisterType<TransactionsStateCacheManager>()
                 .As<ITransactionStateCacheManager<TransactionState, BcnTransaction>>()
+                .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.Blockchain.ConfirmationsToSucceed))
                 .SingleInstance();
 
             builder.RegisterType<PaymentTxStateDiffService>()

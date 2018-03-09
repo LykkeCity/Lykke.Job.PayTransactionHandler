@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
 using Lykke.Service.PayInternal.Client.Models;
@@ -56,6 +57,33 @@ namespace Lykke.Job.PayTransactionHandler.Services
                 BlockId = src.Block?.BlockId?.ToString(),
                 Blockchain = "Bitcoin",
                 AssetId = nameof(MoneyUnit.Satoshi)
+            };
+        }
+
+        public static CreateTransactionRequest ToCreateRequest(this PaymentBcnTransaction src, DateTime firstSeen)
+        {
+            return new CreateTransactionRequest
+            {
+                WalletAddress = src.WalletAddress,
+                Amount = src.Amount,
+                Confirmations = src.Confirmations,
+                BlockId = src.BlockId,
+                FirstSeen = firstSeen,
+                TransactionId = src.Id,
+                Blockchain = src.Blockchain,
+                AssetId = src.AssetId
+            };
+        }
+
+        public static UpdateTransactionRequest ToUpdateRequest(this PaymentBcnTransaction src)
+        {
+            return new UpdateTransactionRequest
+            {
+                WalletAddress = src.WalletAddress,
+                Amount = src.Amount,
+                Confirmations = src.Confirmations,
+                BlockId = src.BlockId,
+                TransactionId = src.Id
             };
         }
     }

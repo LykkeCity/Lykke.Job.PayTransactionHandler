@@ -1,4 +1,5 @@
-﻿using Autofac;
+﻿using System;
+using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Common.Log;
 using Lykke.Job.PayTransactionHandler.Core;
@@ -80,6 +81,12 @@ namespace Lykke.Job.PayTransactionHandler.Modules
                 .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.TransactionsScanPeriod))
                 .AutoActivate()
                 .SingleInstance();
+
+            //builder.RegisterType<CacheOutdateHandler>()
+            //    .As<IStartable>()
+            //    .WithParameter(TypedParameter.From(TimeSpan.FromMinutes(1)))
+            //    .AutoActivate()
+            //    .SingleInstance();
         }
 
         private void RegisterRabbitMqSubscribers(ContainerBuilder builder)

@@ -57,14 +57,14 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
                             var txDetails = await _qBitNinjaClient.GetTransaction(new uint256(tx.Id));
 
-                            await _payInternalClient.CreatePaymentTransaction(
+                            await _payInternalClient.CreatePaymentTransactionAsync(
                                 tx.ToCreateRequest(txDetails.FirstSeen.DateTime));
 
                             break;
 
                         case DiffState.Updated:
 
-                            await _payInternalClient.UpdateTransaction(tx.ToUpdateRequest());
+                            await _payInternalClient.UpdateTransactionAsync(tx.ToUpdateRequest());
 
                             break;
 

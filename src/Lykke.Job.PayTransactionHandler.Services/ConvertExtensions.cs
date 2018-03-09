@@ -2,7 +2,8 @@
 using System.Linq;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
-using Lykke.Service.PayInternal.Client.Models;
+using Lykke.Service.PayInternal.Client.Models.Transactions;
+using Lykke.Service.PayInternal.Client.Models.Wallets;
 using NBitcoin;
 using QBitNinja.Client.Models;
 

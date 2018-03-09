@@ -7,7 +7,7 @@ using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Job.PayTransactionHandler.Services.CommonServices;
 using Lykke.Service.PayInternal.Client;
-using Lykke.Service.PayInternal.Client.Models;
+using Lykke.Service.PayInternal.Client.Models.Wallets;
 
 namespace Lykke.Job.PayTransactionHandler.Services.Transactions
 {

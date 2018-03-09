@@ -10,6 +10,7 @@ using Lykke.Job.PayTransactionHandler.Services.CommonModels;
 using Lykke.Job.PayTransactionHandler.Services.CommonServices;
 using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInternal.Client.Models;
+using Lykke.Service.PayInternal.Client.Models.Transactions;
 using MoreLinq;
 using NBitcoin;
 using QBitNinja.Client;
@@ -58,7 +59,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
         {
             var txDetails = await QBitNinjaClient.GetTransaction(new uint256(tx.Id));
 
-            await PayInternalClient.CreatePaymentTransaction(new CreateTransactionRequest
+            await PayInternalClient.CreatePaymentTransactionAsync(new CreateTransactionRequest
             {
                 WalletAddress = tx.WalletAddress,
                 Amount = tx.Amount,
@@ -73,7 +74,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
         public override async Task UpdateTransaction(PaymentBcnTransaction tx)
         {
-            await PayInternalClient.UpdateTransaction(new UpdateTransactionRequest
+            await PayInternalClient.UpdateTransactionAsync(new UpdateTransactionRequest
             {
                 WalletAddress = tx.WalletAddress,
                 Amount = tx.Amount,

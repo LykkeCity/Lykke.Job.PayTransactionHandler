@@ -32,6 +32,7 @@ namespace Lykke.Job.PayTransactionHandler.Controllers
         }
 
         [HttpGet]
+        [Route("wallets")]
         [SwaggerOperation("GetWalletsCacheState")]
         [ProducesResponseType(typeof(IEnumerable<WalletState>), (int) HttpStatusCode.OK)]
         [ProducesResponseType(typeof(void), (int) HttpStatusCode.InternalServerError)]
@@ -50,6 +51,7 @@ namespace Lykke.Job.PayTransactionHandler.Controllers
         }
 
         [HttpGet]
+        [Route("transactions")]
         [SwaggerOperation("GetTransactionsCacheState")]
         [ProducesResponseType(typeof(IEnumerable<TransactionState>), (int) HttpStatusCode.OK)]
         [ProducesResponseType(typeof(void), (int) HttpStatusCode.InternalServerError)]

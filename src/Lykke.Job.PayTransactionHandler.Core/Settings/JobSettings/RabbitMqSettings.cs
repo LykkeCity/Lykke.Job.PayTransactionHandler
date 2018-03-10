@@ -4,5 +4,6 @@
     {
         public string ConnectionString { get; set; }
         public string WalletsExchangeName { get; set; }
+        public string TransactionsExchangeName { get; set; }
     }
 }

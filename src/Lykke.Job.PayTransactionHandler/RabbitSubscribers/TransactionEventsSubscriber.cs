@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using Common;
 using Common.Log;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
-using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
+using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Job.PayTransactionHandler.Core.Settings.JobSettings;
 using Lykke.RabbitMqBroker;
@@ -14,32 +13,32 @@ using Lykke.Service.PayInternal.Contract;
 
 namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 {
-    public class WalletEventsSubscriber : IStartable, IStopable
+    public class TransactionEventsSubscriber: IStartable, IStopable
     {
         private readonly ILog _log;
         private readonly RabbitMqSettings _settings;
-        private RabbitMqSubscriber<NewWalletMessage> _subscriber;
-        private readonly ICache<WalletState> _walletsCache;
+        private RabbitMqSubscriber<NewTransactionMessage> _subscriber;
+        private readonly ICache<TransactionState> _transactionsCache;
 
-        public WalletEventsSubscriber(ILog log, RabbitMqSettings settings, ICache<WalletState> walletsCache)
+        public TransactionEventsSubscriber(ILog log, RabbitMqSettings settings, ICache<TransactionState> transactionsCache)
         {
             _log = log;
             _settings = settings;
-            _walletsCache = walletsCache;
+            _transactionsCache = transactionsCache;
         }
 
         public void Start()
         {
             var settings = RabbitMqSubscriptionSettings
-                .CreateForSubscriber(_settings.ConnectionString, _settings.WalletsExchangeName, "paytransactionhandler");
+                .CreateForSubscriber(_settings.ConnectionString, _settings.TransactionsExchangeName, "paytransactionhandler");
 
             settings.MakeDurable();
 
-            _subscriber = new RabbitMqSubscriber<NewWalletMessage>(settings,
+            _subscriber = new RabbitMqSubscriber<NewTransactionMessage>(settings,
                     new ResilientErrorHandlingStrategy(_log, settings,
                         retryTimeout: TimeSpan.FromSeconds(10),
                         next: new DeadQueueErrorHandlingStrategy(_log, settings)))
-                .SetMessageDeserializer(new JsonMessageDeserializer<NewWalletMessage>())
+                .SetMessageDeserializer(new JsonMessageDeserializer<NewTransactionMessage>())
                 .SetMessageReadStrategy(new MessageReadQueueStrategy())
                 .Subscribe(ProcessMessageAsync)
                 .CreateDefaultBinding()
@@ -47,13 +46,19 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
                 .Start();
         }
 
-        private async Task ProcessMessageAsync(NewWalletMessage arg)
+        private async Task ProcessMessageAsync(NewTransactionMessage arg)
         {
-            await _walletsCache.Add(new WalletState
+            await _transactionsCache.Add(new TransactionState
             {
-                Address = arg.Address,
-                DueDate = arg.DueDate,
-                Transactions = Enumerable.Empty<PaymentBcnTransaction>()
+                Transaction = new BcnTransaction
+                {
+                    Id = arg.Id,
+                    Amount = arg.Amount,
+                    Confirmations = arg.Confirmations,
+                    BlockId = arg.BlockId,
+                    Blockchain = arg.Blockchain,
+                    AssetId = arg.AssetId
+                }
             });
         }
 

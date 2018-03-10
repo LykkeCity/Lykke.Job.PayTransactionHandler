@@ -59,8 +59,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
 
         public override async Task Warmup()
         {
-            // todo: call PayInternal to get not expired transactions
-            var transactions = Enumerable.Empty<TransactionStateResponse>().ToList();
+            IEnumerable<TransactionStateResponse> transactions = await PayInternalClient.GetAllMonitoredTransactions();
 
             await Cache.AddRange(transactions.Select(x => new TransactionState {Transaction = x.ToDomainTransaction()}));
         }

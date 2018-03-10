@@ -3,20 +3,16 @@ using System.Threading.Tasks;
 using Autofac;
 using Common;
 using Common.Log;
+using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Job.PayTransactionHandler.Core.Settings.JobSettings;
 using Lykke.RabbitMqBroker;
 using Lykke.RabbitMqBroker.Subscriber;
+using Lykke.Service.PayInternal.Contract;
 
 namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 {
-    //todo: replace this classs with the one from contracts package
-    public class NewTransactionMessage
-    {
-
-    }
-
     public class TransactionEventsSubscriber: IStartable, IStopable
     {
         private readonly ILog _log;
@@ -52,10 +48,17 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
         private async Task ProcessMessageAsync(NewTransactionMessage arg)
         {
-            //todo
             await _transactionsCache.Add(new TransactionState
             {
-                Transaction = null
+                Transaction = new BcnTransaction
+                {
+                    Id = arg.Id,
+                    Amount = arg.Amount,
+                    Confirmations = arg.Confirmations,
+                    BlockId = arg.BlockId,
+                    Blockchain = arg.Blockchain,
+                    AssetId = arg.AssetId
+                }
             });
         }
 

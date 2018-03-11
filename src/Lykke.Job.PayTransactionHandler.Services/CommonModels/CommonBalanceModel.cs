@@ -16,7 +16,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.CommonModels
             return Balance?.Operations?.Select(x => new PaymentBcnTransaction
             {
                 WalletAddress = WalletAddress,
-                Amount = (double)x.Amount.ToDecimal(MoneyUnit.Satoshi),
+                Amount = x.Amount.ToDecimal(MoneyUnit.Satoshi),
                 AssetId = nameof(MoneyUnit.Satoshi),
                 Blockchain = "Bitcoin",
                 Id = x.TransactionId.ToString(),

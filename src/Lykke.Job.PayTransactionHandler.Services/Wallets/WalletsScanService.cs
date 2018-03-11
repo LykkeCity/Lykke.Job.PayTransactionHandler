@@ -62,7 +62,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
             await PayInternalClient.CreatePaymentTransactionAsync(new CreateTransactionRequest
             {
                 WalletAddress = tx.WalletAddress,
-                Amount = tx.Amount,
+                Amount = (double) tx.Amount,
                 FirstSeen = txDetails.FirstSeen.DateTime,
                 TransactionId = tx.Id,
                 Confirmations = tx.Confirmations,
@@ -77,7 +77,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
             await PayInternalClient.UpdateTransactionAsync(new UpdateTransactionRequest
             {
                 WalletAddress = tx.WalletAddress,
-                Amount = tx.Amount,
+                Amount = (double) tx.Amount,
                 Confirmations = tx.Confirmations,
                 BlockId = tx.BlockId,
                 TransactionId = tx.Id

@@ -63,7 +63,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
 
             await PayInternalClient.UpdateTransactionAsync(new UpdateTransactionRequest
             {
-                Amount = tx.Amount,
+                Amount = (double) tx.Amount,
                 Confirmations = tx.Confirmations,
                 BlockId = tx.BlockId,
                 TransactionId = tx.Id,

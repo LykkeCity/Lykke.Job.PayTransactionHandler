@@ -58,12 +58,16 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
 
         public override async Task UpdateTransaction(BcnTransaction tx)
         {
+            //todo: FirstSeen has to be a part of domain model BcnTransaction, also a part of NewTransactionMessage
+            var txDetails = await QBitNinjaClient.GetTransaction(new uint256(tx.Id));
+
             await PayInternalClient.UpdateTransactionAsync(new UpdateTransactionRequest
             {
                 Amount = tx.Amount,
                 Confirmations = tx.Confirmations,
                 BlockId = tx.BlockId,
-                TransactionId = tx.Id
+                TransactionId = tx.Id,
+                FirstSeen = txDetails.FirstSeen.DateTime
             });
         }
 

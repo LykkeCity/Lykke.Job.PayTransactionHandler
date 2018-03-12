@@ -58,7 +58,8 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
                     BlockId = arg.BlockId,
                     Blockchain = arg.Blockchain,
                     AssetId = arg.AssetId
-                }
+                },
+                DueDate = arg.DueDate
             });
         }
 

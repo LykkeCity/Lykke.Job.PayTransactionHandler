@@ -25,7 +25,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
             return new PaymentBcnTransaction
             {
                 Id = src.Id,
-                Amount = src.Amount,
+                Amount = (decimal) src.Amount,
                 BlockId = src.BlockId,
                 Confirmations = src.Confirmations,
                 WalletAddress = src.WalletAddress,
@@ -39,7 +39,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
             return new BcnTransaction
             {
                 Id = src.Id,
-                Amount = src.Amount,
+                Amount = (decimal) src.Amount,
                 Confirmations = src.Confirmations,
                 BlockId = src.BlockId,
                 Blockchain = src.Blockchain,
@@ -52,7 +52,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
             return new BcnTransaction
             {
                 Id = src.TransactionId.ToString(),
-                Amount = (double)src.SpentCoins.Sum(x => x.TxOut.Value.ToDecimal(MoneyUnit.Satoshi)),
+                Amount = src.SpentCoins.Sum(x => x.TxOut.Value.ToDecimal(MoneyUnit.Satoshi)),
                 Confirmations = src.Block?.Confirmations ?? 0,
                 BlockId = src.Block?.BlockId?.ToString(),
                 Blockchain = "Bitcoin",
@@ -65,7 +65,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
             return new CreateTransactionRequest
             {
                 WalletAddress = src.WalletAddress,
-                Amount = src.Amount,
+                Amount = (double) src.Amount,
                 Confirmations = src.Confirmations,
                 BlockId = src.BlockId,
                 FirstSeen = txDetails.FirstSeen.DateTime,
@@ -81,7 +81,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
             return new UpdateTransactionRequest
             {
                 WalletAddress = src.WalletAddress,
-                Amount = src.Amount,
+                Amount = (double) src.Amount,
                 Confirmations = src.Confirmations,
                 BlockId = src.BlockId,
                 TransactionId = src.Id

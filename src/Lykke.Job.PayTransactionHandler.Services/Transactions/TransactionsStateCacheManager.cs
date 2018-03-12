@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Common.Log;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
+using Lykke.Job.PayTransactionHandler.Core.Extensions;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Job.PayTransactionHandler.Services.CommonServices;
 using Lykke.Service.PayInternal.Client;
@@ -31,12 +33,20 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
         {
             IEnumerable<TransactionState> state = await Cache.Get();
 
-            foreach (var payTransactionState in state.Where(x => x.Transaction.Confirmations >= _confirmationsLimit))
+            IEnumerable<TransactionState> toRemove =
+                state.Where(x => x.IsConfirmed(_confirmationsLimit) || x.IsExpired());
+
+            foreach (TransactionState txState in toRemove)
             {
-                await Cache.Remove(payTransactionState);
+                if (txState.IsExpired())
+                {
+                    //todo: notify PayInternal about transaction expired by DueDate
+                }
+
+                await Cache.Remove(txState);
 
                 await Log.WriteInfoAsync(nameof(TransactionsStateCacheManager), nameof(ClearOutOfDate),
-                    $"Cleared transaction {payTransactionState.Transaction.Id} from cache with confirmations = {payTransactionState.Transaction.Confirmations}");
+                    $"Cleared transaction {txState.Transaction.Id} from cache with confirmations = {txState.Transaction.Confirmations}");
             }
         }
 
@@ -61,7 +71,12 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
         {
             IEnumerable<TransactionStateResponse> transactions = await PayInternalClient.GetAllMonitoredTransactions();
 
-            await Cache.AddRange(transactions.Select(x => new TransactionState {Transaction = x.ToDomainTransaction()}));
+            await Cache.AddRange(transactions.Select(x => new TransactionState
+            {
+                Transaction = x.ToDomainTransaction(),
+                //todo: replace with value from API response once it is updated
+                DueDate = DateTime.UtcNow.AddDays(1)
+            }));
         }
     }
 }

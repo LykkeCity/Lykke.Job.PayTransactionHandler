@@ -70,5 +70,10 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
             return result;
         }
+
+        public DiffResult<PaymentBcnTransaction> Diff(PaymentBcnTransaction initialState, PaymentBcnTransaction updatedState)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

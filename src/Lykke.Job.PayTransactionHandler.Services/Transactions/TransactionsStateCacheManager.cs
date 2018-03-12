@@ -74,8 +74,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             await Cache.AddRange(transactions.Select(x => new TransactionState
             {
                 Transaction = x.ToDomainTransaction(),
-                //todo: replace with value from API response once it is updated
-                DueDate = DateTime.UtcNow.AddDays(1)
+                DueDate = x.DueDate
             }));
         }
     }

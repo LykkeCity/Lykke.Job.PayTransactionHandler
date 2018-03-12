@@ -31,44 +31,61 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             {
                 var initialTx = initialState.SingleOrDefault(x => x.Id == tx.Id);
 
-                _log.WriteInfoAsync(nameof(TxStateDiffService), nameof(Diff),
-                    $"Diffing transaction {tx.Id}. Confirmations: {tx.Confirmations}");
+                DiffResult<BcnTransaction> txDiff = DiffSingleTransaction(initialTx, tx);
 
-                if (initialTx?.Confirmations >= _confirmationsLimit)
+                if (txDiff != null)
                 {
-                    _log.WriteInfoAsync(nameof(TxStateDiffService), nameof(Diff),
-                        $"Confirmations limit reached ({_confirmationsLimit}), will skip transaction");
-
-                    continue;
-                }
-
-                var isNew = initialTx == null;
-
-                if (isNew)
-                {
-                    _log.WriteInfoAsync(nameof(TxStateDiffService), nameof(Diff),
-                        $"Found new transaction: {tx.Id}");
-                }
-                else
-                {
-                    _log.WriteInfoAsync(nameof(TxStateDiffService), nameof(Diff),
-                        $"Not new transaction. Will try to compare");
-                }
-
-                if (!initialState.Any(x => tx.Equals(x)))
-                {
-                    _log.WriteInfoAsync(nameof(TxStateDiffService), nameof(Diff),
-                        $"Transaction {tx.Id} has changes.");
-
-                    result.Add(new DiffResult<BcnTransaction>
-                    {
-                        CompareState = isNew ? DiffState.New : DiffState.Updated,
-                        Object = tx
-                    });
+                    result.Add(txDiff);
                 }
             }
 
             return result;
+        }
+
+        public DiffResult<BcnTransaction> Diff(BcnTransaction initialTx, BcnTransaction updatedTx)
+        {
+            return DiffSingleTransaction(initialTx, updatedTx);
+        }
+
+        private DiffResult<BcnTransaction> DiffSingleTransaction(BcnTransaction initialTx, BcnTransaction updatedTx)
+        {
+            _log.WriteInfoAsync(nameof(TxStateDiffService), nameof(DiffSingleTransaction),
+                $"Diffing transaction {updatedTx.Id}. Confirmations: {updatedTx.Confirmations}");
+
+            if (initialTx?.Confirmations >= _confirmationsLimit)
+            {
+                _log.WriteInfoAsync(nameof(TxStateDiffService), nameof(DiffSingleTransaction),
+                    $"Confirmations limit reached ({_confirmationsLimit}), will skip transaction");
+
+                return null;
+            }
+
+            var isNew = initialTx == null;
+
+            if (isNew)
+            {
+                _log.WriteInfoAsync(nameof(TxStateDiffService), nameof(DiffSingleTransaction),
+                    $"Found new transaction: {updatedTx.Id}");
+            }
+            else
+            {
+                _log.WriteInfoAsync(nameof(TxStateDiffService), nameof(DiffSingleTransaction),
+                    $"Not new transaction. Will try to compare");
+            }
+
+            if (!updatedTx.Equals(initialTx))
+            {
+                _log.WriteInfoAsync(nameof(TxStateDiffService), nameof(DiffSingleTransaction),
+                    $"Transaction {updatedTx.Id} has changes.");
+
+                return new DiffResult<BcnTransaction>
+                {
+                    CompareState = isNew ? DiffState.New : DiffState.Updated,
+                    Object = updatedTx
+                };
+            }
+
+            return null;
         }
     }
 }

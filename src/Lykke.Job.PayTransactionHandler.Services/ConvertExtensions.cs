@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
+using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
 using Lykke.Service.PayInternal.Client.Models.Transactions;
 using Lykke.Service.PayInternal.Client.Models.Wallets;
@@ -47,6 +48,15 @@ namespace Lykke.Job.PayTransactionHandler.Services
             };
         }
 
+        public static TransactionState ToDomainState(this TransactionStateResponse src)
+        {
+            return new TransactionState
+            {
+                DueDate = src.DueDate,
+                Transaction = src.ToDomainTransaction()
+            };
+        }
+
         public static BcnTransaction ToDomain(this GetTransactionResponse src)
         {
             return new BcnTransaction
@@ -85,6 +95,32 @@ namespace Lykke.Job.PayTransactionHandler.Services
                 Confirmations = src.Confirmations,
                 BlockId = src.BlockId,
                 TransactionId = src.Id
+            };
+        }
+
+        public static CreateTransactionRequest ToCreateRequest(this BcnTransaction src, DateTime firstSeen)
+        {
+            return new CreateTransactionRequest
+            {
+                Amount = (double) src.Amount,
+                Confirmations = src.Confirmations,
+                BlockId = src.BlockId,
+                FirstSeen = firstSeen,
+                AssetId = src.AssetId,
+                Blockchain = src.Blockchain,
+                TransactionId = src.Id
+            };
+        }
+
+        public static UpdateTransactionRequest ToUpdateRequest(this BcnTransaction src, DateTime firstSeen)
+        {
+            return new UpdateTransactionRequest
+            {
+                BlockId = src.BlockId,
+                Confirmations = src.Confirmations,
+                FirstSeen = firstSeen,
+                TransactionId = src.Id,
+                Amount = (double) src.Amount
             };
         }
     }

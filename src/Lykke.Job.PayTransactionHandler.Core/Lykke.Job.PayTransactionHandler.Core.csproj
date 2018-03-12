@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Lykke.Common" Version="4.4.2" />
-    <PackageReference Include="Lykke.Service.PayInternal.Client" Version="1.0.38" />
+    <PackageReference Include="Lykke.Service.PayInternal.Client" Version="1.0.41" />
     <PackageReference Include="Lykke.SettingsReader" Version="2.1.0" />
   </ItemGroup>
 

@@ -71,7 +71,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
             };
         }
 
-        public static CreateTransactionRequest ToCreateRequest(this PaymentBcnTransaction src, GetTransactionResponse txDetails)
+        public static CreateTransactionRequest ToCreateRequest(this PaymentBcnTransaction src, GetTransactionResponse txDetails, Network network)
         {
             return new CreateTransactionRequest
             {
@@ -83,7 +83,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
                 TransactionId = src.Id,
                 Blockchain = src.Blockchain,
                 AssetId = src.AssetId,
-                SourceWalletAddresses = txDetails.GetSourceWalletAddresses().Select(x => x.ToString()).ToArray()
+                SourceWalletAddresses = txDetails.GetSourceWalletAddresses(network).Select(x => x.ToString()).ToArray()
             };
         }
 

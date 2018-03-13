@@ -118,6 +118,7 @@ namespace Lykke.Job.PayTransactionHandler.Modules
         {
             builder.RegisterType<WalletsScanService>()
                 .Keyed<IScanService>(BlockchainScanType.Wallet)
+                .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.Bitcoin.Network))
                 .SingleInstance();
 
             builder.RegisterType<TransactionsScanService>()

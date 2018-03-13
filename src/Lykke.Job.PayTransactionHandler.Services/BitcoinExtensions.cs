@@ -7,14 +7,14 @@ namespace Lykke.Job.PayTransactionHandler.Services
 {
     public static class BitcoinExtensions
     {
-        public static BitcoinAddress GetDestinationMainAddress(this ICoin src)
+        public static BitcoinAddress GetDestinationAddress(this ICoin src, Network network)
         {
-            return src?.TxOut?.ScriptPubKey?.GetDestinationAddress(Network.Main);
+            return src?.TxOut?.ScriptPubKey?.GetDestinationAddress(network);
         }
 
-        public static IEnumerable<BitcoinAddress> GetSourceWalletAddresses(this GetTransactionResponse src)
+        public static IEnumerable<BitcoinAddress> GetSourceWalletAddresses(this GetTransactionResponse src, Network network)
         {
-            return src?.SpentCoins?.Select(x => x.GetDestinationMainAddress()).Where(x => x != null);
+            return src?.SpentCoins?.Select(x => x.GetDestinationAddress(network)).Where(x => x != null);
         }
     }
 }

@@ -19,17 +19,20 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
         private readonly QBitNinjaClient _qBitNinjaClient;
         private readonly IDiffService<PaymentBcnTransaction> _diffService;
         private readonly IPayInternalClient _payInternalClient;
+        private readonly Network _bitcoinNetwork;
 
         public WalletsScanService2(
             ICacheMaintainer<WalletState> cacheMaintainer,
             QBitNinjaClient qBitNinjaClient,
             IDiffService<PaymentBcnTransaction> diffService,
-            IPayInternalClient payInternalClient)
+            IPayInternalClient payInternalClient,
+            string bitcoinNetwork)
         {
             _cacheMaintainer = cacheMaintainer ?? throw new ArgumentNullException(nameof(cacheMaintainer));
             _qBitNinjaClient = qBitNinjaClient ?? throw new ArgumentNullException(nameof(qBitNinjaClient));
             _diffService = diffService ?? throw new ArgumentNullException(nameof(diffService));
             _payInternalClient = payInternalClient ?? throw new ArgumentNullException(nameof(payInternalClient));
+            _bitcoinNetwork = Network.GetNetwork(bitcoinNetwork);
         }
 
         public async Task Execute()
@@ -57,7 +60,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
                             var txDetails = await _qBitNinjaClient.GetTransaction(new uint256(tx.Id));
 
-                            await _payInternalClient.CreatePaymentTransactionAsync(tx.ToCreateRequest(txDetails));
+                            await _payInternalClient.CreatePaymentTransactionAsync(tx.ToCreateRequest(txDetails, _bitcoinNetwork));
 
                             break;
 

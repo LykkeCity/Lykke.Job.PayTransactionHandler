@@ -9,10 +9,16 @@ namespace Lykke.Job.PayTransactionHandler.Core.Settings.JobSettings
         public TimeSpan WalletsScanPeriod { get; set; }
         public TimeSpan TransactionsScanPeriod { get; set; }
         public BlockchainSettings Blockchain { get; set; }
+        public BitcoinSettings Bitcoin { get; set; }
     }
 
     public class BlockchainSettings
     {
         public int ConfirmationsToSucceed { get; set; }
+    }
+
+    public class BitcoinSettings
+    {
+        public string Network { get; set; }
     }
 }

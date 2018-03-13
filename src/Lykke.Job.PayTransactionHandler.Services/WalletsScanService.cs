@@ -41,6 +41,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
         private readonly QBitNinjaClient _qBitNinjaClient;
         private readonly IWalletsStateCacheManager _walletsStateCacheManager;
         private readonly IDiffService<BlockchainTransaction> _diffService;
+        private readonly Network _bitcoinNetwork;
         private readonly ILog _log;
 
         private const int BatchPieceSize = 15;
@@ -50,6 +51,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
             QBitNinjaClient qBitNinjaClient,
             IWalletsStateCacheManager walletsStateCacheManager,
             IDiffService<BlockchainTransaction> diffService,
+            string bitcoinNetwork,
             ILog log)
         {
             _payInternalClient = payInternalClient ?? throw new ArgumentNullException(nameof(payInternalClient));
@@ -57,6 +59,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
             _walletsStateCacheManager = walletsStateCacheManager ??
                                         throw new ArgumentNullException(nameof(walletsStateCacheManager));
             _diffService = diffService ?? throw new ArgumentNullException(nameof(diffService));
+            _bitcoinNetwork = Network.GetNetwork(bitcoinNetwork);
             _log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
@@ -100,7 +103,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
                             BlockId = tx.BlockId,
                             Blockchain = tx.Blockchain,
                             AssetId = tx.AssetId,
-                            SourceWalletAddresses = txDetails.GetSourceWalletAddresses().Select(x => x.ToString()).ToArray()
+                            SourceWalletAddresses = txDetails.GetSourceWalletAddresses(_bitcoinNetwork).Select(x => x.ToString()).ToArray()
                         });
 
                         break;

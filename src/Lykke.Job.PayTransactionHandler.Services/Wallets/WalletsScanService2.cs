@@ -43,8 +43,10 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
             {
                 BalanceModel balance = await _qBitNinjaClient.GetBalance(BitcoinAddress.Create(walletState.Address));
 
-                IEnumerable<PaymentBcnTransaction> bcnTransactions = balance.Operations
-                    ?.Select(x => x.ToDomainPaymentTransaction(walletState.Address)).ToList();
+                IEnumerable<PaymentBcnTransaction> bcnTransactions = balance?.Operations
+                    ?.Where(o => o.ReceivedCoins.Any(coin =>
+                        coin.GetDestinationAddress(_bitcoinNetwork).ToString().Equals(walletState.Address)))
+                    .Select(x => x.ToDomainPaymentTransaction(walletState.Address)).ToList();
 
                 IEnumerable<PaymentBcnTransaction> cacheTransactions = walletState.Transactions;
 

@@ -108,7 +108,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                     })));
             }
 
-            return balances.SelectMany(x => x.GetTransactions());
+            return balances.SelectMany(x => x.GetPaymentTransactions(_bitcoinNetwork));
         }
     }
 }

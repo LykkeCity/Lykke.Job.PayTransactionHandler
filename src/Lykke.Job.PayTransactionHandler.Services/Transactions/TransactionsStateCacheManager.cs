@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Common.Log;
@@ -9,6 +8,7 @@ using Lykke.Job.PayTransactionHandler.Core.Extensions;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Job.PayTransactionHandler.Services.CommonServices;
 using Lykke.Service.PayInternal.Client;
+using Lykke.Service.PayInternal.Client.Models.Transactions;
 using Lykke.Service.PayInternal.Client.Models.Wallets;
 
 namespace Lykke.Job.PayTransactionHandler.Services.Transactions
@@ -40,7 +40,13 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             {
                 if (txState.IsExpired())
                 {
-                    //todo: notify PayInternal about transaction expired by DueDate
+                    await PayInternalClient.SetTransactionExpired(new TransactionExpiredRequest
+                    {
+                        TransactionId = txState.Transaction.Id
+                    });
+
+                    await Log.WriteInfoAsync(nameof(TransactionsStateCacheManager), nameof(ClearOutOfDate),
+                        $"Cleared transaction {txState.Transaction.Id} from cache as expired");
                 }
 
                 await Cache.Remove(txState);

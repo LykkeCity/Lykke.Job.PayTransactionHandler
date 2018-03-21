@@ -40,7 +40,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             {
                 if (txState.IsExpired())
                 {
-                    await PayInternalClient.SetTransactionExpired(new TransactionExpiredRequest
+                    await PayInternalClient.SetTransactionExpiredAsync(new TransactionExpiredRequest
                     {
                         TransactionId = txState.Transaction.Id
                     });

@@ -15,6 +15,9 @@ using QBitNinja.Client.Models;
 
 namespace Lykke.Job.PayTransactionHandler.Services
 {
+    /// <summary>
+    /// Scans bitcoin blockchain for incoming payment transactions by wallet
+    /// </summary>
     public class WalletsScanService : IWalletsScanService
     {
         private class WalletBalanceModel
@@ -22,18 +25,22 @@ namespace Lykke.Job.PayTransactionHandler.Services
             public string WalletAddress { get; set; }
             public BalanceModel Balance { get; set; }
 
-            public IEnumerable<BlockchainTransaction> GetTransactions()
+            public IEnumerable<BlockchainTransaction> GetPaymentTransactions(Network network)
             {
-                return Balance?.Operations?.Select(x => new BlockchainTransaction
-                {
-                    WalletAddress = WalletAddress,
-                    Amount = (double) x.Amount.ToDecimal(MoneyUnit.Satoshi),
-                    AssetId = nameof(MoneyUnit.Satoshi),
-                    Blockchain = "Bitcoin",
-                    Id = x.TransactionId.ToString(),
-                    BlockId = x.BlockId?.ToString(),
-                    Confirmations = x.Confirmations
-                });
+                return Balance?.Operations?
+                    .Where(o => o.ReceivedCoins.Any(coin => coin.GetDestinationAddress(network).ToString().Equals(WalletAddress))).Select(x =>
+                        new BlockchainTransaction
+                        {
+                            WalletAddress = WalletAddress,
+                            //todo: shouldn't take the whole amount of operation but only amount of coin with WalletAddress
+                            // This will not work for transactions with multiple payment sources
+                            Amount = (double) x.Amount.ToDecimal(MoneyUnit.Satoshi),
+                            AssetId = nameof(MoneyUnit.Satoshi),
+                            Blockchain = "Bitcoin",
+                            Id = x.TransactionId.ToString(),
+                            BlockId = x.BlockId?.ToString(),
+                            Confirmations = x.Confirmations
+                        });
             }
         }
 
@@ -41,6 +48,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
         private readonly QBitNinjaClient _qBitNinjaClient;
         private readonly IWalletsStateCacheManager _walletsStateCacheManager;
         private readonly IDiffService<BlockchainTransaction> _diffService;
+        private readonly Network _bitcoinNetwork;
         private readonly ILog _log;
 
         private const int BatchPieceSize = 15;
@@ -50,6 +58,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
             QBitNinjaClient qBitNinjaClient,
             IWalletsStateCacheManager walletsStateCacheManager,
             IDiffService<BlockchainTransaction> diffService,
+            string bitcoinNetwork,
             ILog log)
         {
             _payInternalClient = payInternalClient ?? throw new ArgumentNullException(nameof(payInternalClient));
@@ -57,6 +66,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
             _walletsStateCacheManager = walletsStateCacheManager ??
                                         throw new ArgumentNullException(nameof(walletsStateCacheManager));
             _diffService = diffService ?? throw new ArgumentNullException(nameof(diffService));
+            _bitcoinNetwork = Network.GetNetwork(bitcoinNetwork);
             _log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
@@ -90,7 +100,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
 
                         var txDetails = await _qBitNinjaClient.GetTransaction(new uint256(tx.Id));
 
-                        await _payInternalClient.CreateTransaction(new CreateTransactionRequest
+                        await _payInternalClient.CreatePaymentTransaction(new CreateTransactionRequest
                         {
                             WalletAddress = tx.WalletAddress,
                             Amount = tx.Amount,
@@ -99,7 +109,8 @@ namespace Lykke.Job.PayTransactionHandler.Services
                             Confirmations = tx.Confirmations,
                             BlockId = tx.BlockId,
                             Blockchain = tx.Blockchain,
-                            AssetId = tx.AssetId
+                            AssetId = tx.AssetId,
+                            SourceWalletAddresses = txDetails.GetSourceWalletAddresses(_bitcoinNetwork).Select(x => x.ToString()).ToArray()
                         });
 
                         break;
@@ -143,7 +154,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
                     })));
             }
 
-            return balances.SelectMany(x => x.GetTransactions());
+            return balances.SelectMany(x => x.GetPaymentTransactions(_bitcoinNetwork));
         }
     }
 }

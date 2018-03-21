@@ -28,9 +28,9 @@ namespace Lykke.Job.PayTransactionHandler.PeriodicalHandlers
 
         public override async Task Execute()
         {
-            await _walletsCache.Wipe();
+            await _walletsCache.WipeAsync();
 
-            await _transactionsCache.Wipe();
+            await _transactionsCache.WipeAsync();
         }
     }
 }

@@ -14,7 +14,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.CommonServices
             _storage = new ConcurrentDictionary<string, T>();
 
         [SuppressMessage("Compiler", "CS1998")]
-        public async Task<T> Get(string id)
+        public async Task<T> GetAsync(string id)
         {
             if (_storage.TryGetValue(id, out var model))
             {
@@ -25,15 +25,15 @@ namespace Lykke.Job.PayTransactionHandler.Services.CommonServices
         }
 
         [SuppressMessage("Compiler", "CS1998")]
-        public async Task Set(string id, T model) =>
+        public async Task SetAsync(string id, T model) =>
             _storage.AddOrUpdate(id, model, (key, oldValue) => model);
 
         [SuppressMessage("Compiler", "CS1998")]
-        public async Task<IEnumerable<T>> Get() =>
+        public async Task<IEnumerable<T>> GetAsync() =>
             _storage.Values;
 
         [SuppressMessage("Compiler", "CS1998")]
-        public async Task<bool> Remove(string id) =>
+        public async Task<bool> RemoveAsync(string id) =>
             _storage.Remove(id, out var value);
     }
 }

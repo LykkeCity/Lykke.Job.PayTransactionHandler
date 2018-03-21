@@ -13,21 +13,21 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
         {
         }
 
-        public override async Task Add(WalletState item) =>
-            await Storage.Set(item.Address, item);
+        public override async Task AddAsync(WalletState item) =>
+            await Storage.SetAsync(item.Address, item);
 
-        public override async Task AddRange(IEnumerable<WalletState> items)
+        public override async Task AddRangeAsync(IEnumerable<WalletState> items)
         {
-            var tasks = items.Select(x => Storage.Set(x.Address, x));
+            var tasks = items.Select(x => Storage.SetAsync(x.Address, x));
 
             await Task.WhenAll(tasks);
         }
 
-        public override async Task Remove(WalletState item) =>
-            await Storage.Remove(item.Address);
+        public override async Task RemoveAsync(WalletState item) =>
+            await Storage.RemoveAsync(item.Address);
 
-        public override async Task Update(WalletState item) => 
-            await Storage.Set(item.Address, item);
+        public override async Task UpdateAsync(WalletState item) => 
+            await Storage.SetAsync(item.Address, item);
         
     }
 }

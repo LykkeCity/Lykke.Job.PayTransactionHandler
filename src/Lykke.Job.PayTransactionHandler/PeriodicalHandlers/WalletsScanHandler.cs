@@ -26,7 +26,7 @@ namespace Lykke.Job.PayTransactionHandler.PeriodicalHandlers
         {
             IScanService scanService = _scanServiceProvider.Get(BlockchainScanType.Wallet);
 
-            await scanService.Execute();
+            await scanService.ExecuteAsync();
         }
     }
 }

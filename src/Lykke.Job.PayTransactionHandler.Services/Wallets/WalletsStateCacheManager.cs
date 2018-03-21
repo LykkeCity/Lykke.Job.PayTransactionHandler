@@ -23,16 +23,16 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
         {
         }
 
-        public override async Task Warmup()
+        public override async Task WarmupAsync()
         {
             var wallets = (await PayInternalClient.GetNotExpiredWalletsAsync()).ToList();
 
-            await Cache.AddRange(wallets.Select(x => x.ToDomain()));
+            await Cache.AddRangeAsync(wallets.Select(x => x.ToDomain()));
         }
 
-        public override async Task UpdateTransactions(IEnumerable<PaymentBcnTransaction> transactions)
+        public override async Task UpdateTransactionsAsync(IEnumerable<PaymentBcnTransaction> transactions)
         {
-            var walletsState = (await Cache.Get()).ToList();
+            var walletsState = (await Cache.GetAsync()).ToList();
 
             foreach (var trx in transactions.GroupBy(x => x.WalletAddress))
             {
@@ -40,21 +40,21 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
                 walletState.Transactions = trx;
 
-                await Cache.Update(walletState);
+                await Cache.UpdateAsync(walletState);
 
-                await Log.WriteInfoAsync(nameof(WalletsStateCacheManager), nameof(UpdateTransactions), $"Updated wallet {trx.Key} in cache");
+                await Log.WriteInfoAsync(nameof(WalletsStateCacheManager), nameof(UpdateTransactionsAsync), $"Updated wallet {trx.Key} in cache");
             }
         }
 
-        public override async Task ClearOutOfDate()
+        public override async Task ClearOutOfDateAsync()
         {
-            var walletsState = (await Cache.Get()).ToList();
+            var walletsState = (await Cache.GetAsync()).ToList();
 
             foreach (var walletState in walletsState.Where(x => x.DueDate <= DateTime.UtcNow))
             {
-                await Cache.Remove(walletState);
+                await Cache.RemoveAsync(walletState);
 
-                await Log.WriteInfoAsync(nameof(WalletsStateCacheManager), nameof(ClearOutOfDate), $"Cleared wallet {walletState.Address} from cache with dudate = {walletState.DueDate}");
+                await Log.WriteInfoAsync(nameof(WalletsStateCacheManager), nameof(ClearOutOfDateAsync), $"Cleared wallet {walletState.Address} from cache with dudate = {walletState.DueDate}");
             }
         }
     }

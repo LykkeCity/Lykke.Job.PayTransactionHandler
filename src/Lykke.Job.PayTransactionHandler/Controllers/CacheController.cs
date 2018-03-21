@@ -40,7 +40,7 @@ namespace Lykke.Job.PayTransactionHandler.Controllers
         {
             try
             {
-                return Ok(await _walletsStateCacheManager.GetState());
+                return Ok(await _walletsStateCacheManager.GetStateAsync());
             }
             catch (Exception ex)
             {
@@ -59,7 +59,7 @@ namespace Lykke.Job.PayTransactionHandler.Controllers
         {
             try
             {
-                return Ok(await _transactionStateCacheManager.GetState());
+                return Ok(await _transactionStateCacheManager.GetStateAsync());
             }
             catch (Exception ex)
             {

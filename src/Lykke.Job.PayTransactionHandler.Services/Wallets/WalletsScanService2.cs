@@ -35,9 +35,9 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
             _bitcoinNetwork = Network.GetNetwork(bitcoinNetwork);
         }
 
-        public async Task Execute()
+        public async Task ExecuteAsync()
         {
-            IEnumerable<WalletState> cacheState = await _cacheMaintainer.Get();
+            IEnumerable<WalletState> cacheState = await _cacheMaintainer.GetAsync();
 
             foreach (var walletState in cacheState)
             {
@@ -78,7 +78,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
                 walletState.Transactions = bcnTransactions;
 
-                await _cacheMaintainer.UpdateItem(walletState);
+                await _cacheMaintainer.UpdateItemAsync(walletState);
             }
         }
     }

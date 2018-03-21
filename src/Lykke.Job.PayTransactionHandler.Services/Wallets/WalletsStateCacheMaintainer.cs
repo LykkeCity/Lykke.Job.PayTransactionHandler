@@ -30,7 +30,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
             _log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
-        public async Task WarmUp()
+        public async Task WarmUpAsync()
         {
             IEnumerable<WalletStateResponse> walletsState = await _payInternalClient.GetNotExpiredWalletsAsync();
 
@@ -42,7 +42,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
             }
         }
 
-        public async Task Wipe()
+        public async Task WipeAsync()
         {
             IEnumerable<WalletState> cached = await _cache.GetPartitionAsync<WalletState>(CachePartitionName);
 
@@ -50,19 +50,19 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
             {
                 await _cache.RemoveWithPartitionAsync(CachePartitionName, walletState.Address);
 
-                await _log.WriteInfoAsync(nameof(WalletsStateCacheMaintainer), nameof(Wipe),
+                await _log.WriteInfoAsync(nameof(WalletsStateCacheMaintainer), nameof(WipeAsync),
                     $"Cleared wallet {walletState.Address} from cache with dudate = {walletState.DueDate}");
             }
         }
 
-        public async Task UpdateItem(WalletState item)
+        public async Task UpdateItemAsync(WalletState item)
         {
             await _cache.SetWithPartitionAsync(CachePartitionName, item.Address, item);
 
-            await _log.WriteInfoAsync(nameof(WalletsStateCacheMaintainer), nameof(UpdateItem), $"Updated wallet {item.Address} in cache");
+            await _log.WriteInfoAsync(nameof(WalletsStateCacheMaintainer), nameof(UpdateItemAsync), $"Updated wallet {item.Address} in cache");
         }
 
-        public async Task<IEnumerable<WalletState>> Get()
+        public async Task<IEnumerable<WalletState>> GetAsync()
         {
             return await _cache.GetPartitionAsync<WalletState>(CachePartitionName);
         }

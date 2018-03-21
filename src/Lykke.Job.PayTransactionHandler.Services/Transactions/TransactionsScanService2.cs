@@ -31,9 +31,9 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             _payInternalClient = payInternalClient ?? throw new ArgumentNullException(nameof(payInternalClient));
         }
 
-        public async Task Execute()
+        public async Task ExecuteAsync()
         {
-            IEnumerable<TransactionState> cacheState = await _cacheMaintainer.Get();
+            IEnumerable<TransactionState> cacheState = await _cacheMaintainer.GetAsync();
 
             foreach (TransactionState cacheTxState in cacheState)
             {
@@ -68,7 +68,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
 
                     cacheTxState.Transaction = bcnTx;
 
-                    await _cacheMaintainer.UpdateItem(cacheTxState);
+                    await _cacheMaintainer.UpdateItemAsync(cacheTxState);
                 }
             }
         }

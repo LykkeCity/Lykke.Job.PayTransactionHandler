@@ -15,15 +15,15 @@ namespace Lykke.Job.PayTransactionHandler.Services.CommonServices
             Storage = storage ?? throw new ArgumentNullException(nameof(storage));
         }
 
-        public async Task<IEnumerable<T>> Get() =>
-            await Storage.Get();
+        public async Task<IEnumerable<T>> GetAsync() =>
+            await Storage.GetAsync();
 
-        public abstract Task Add(T item);
+        public abstract Task AddAsync(T item);
 
-        public abstract Task AddRange(IEnumerable<T> items);
+        public abstract Task AddRangeAsync(IEnumerable<T> items);
 
-        public abstract Task Remove(T item);
+        public abstract Task RemoveAsync(T item);
 
-        public abstract Task Update(T item);
+        public abstract Task UpdateAsync(T item);
     }
 }

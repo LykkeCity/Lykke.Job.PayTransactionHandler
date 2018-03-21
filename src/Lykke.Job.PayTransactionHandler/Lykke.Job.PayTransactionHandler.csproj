@@ -32,7 +32,7 @@
     <!-- #endif -->
     <!-- #if rabbitpub || rabbitsub -->
     <PackageReference Include="Lykke.RabbitMqBroker" Version="4.3.1" />
-    <PackageReference Include="Lykke.Service.PayInternal.Contract" Version="1.0.10" />
+    <PackageReference Include="Lykke.Service.PayInternal.Contract" Version="1.0.11" />
     <!-- #endif -->
     <PackageReference Include="Lykke.SettingsReader" Version="2.1.0" />
     <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.1" />

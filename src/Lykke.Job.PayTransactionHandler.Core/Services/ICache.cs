@@ -3,11 +3,12 @@ using System.Threading.Tasks;
 
 namespace Lykke.Job.PayTransactionHandler.Core.Services
 {
-    public interface IStorage<T>
+    public interface ICache<T>
     {
-        Task<T> GetAsync(string id);
-        Task SetAsync(string id, T model);
+        Task AddAsync(T item);
+        Task AddRangeAsync(IEnumerable<T> items);
         Task<IEnumerable<T>> GetAsync();
-        Task<bool> RemoveAsync(string id);
+        Task RemoveAsync(T item);
+        Task UpdateAsync(T item);
     }
 }

@@ -76,7 +76,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
             return new CreateTransactionRequest
             {
                 WalletAddress = src.WalletAddress,
-                Amount = (double) src.Amount,
+                Amount = src.Amount,
                 Confirmations = src.Confirmations,
                 BlockId = src.BlockId,
                 FirstSeen = firstSeen,
@@ -91,7 +91,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
             return new UpdateTransactionRequest
             {
                 WalletAddress = src.WalletAddress,
-                Amount = (double) src.Amount,
+                Amount = src.Amount,
                 Confirmations = src.Confirmations,
                 BlockId = src.BlockId,
                 TransactionId = src.Id
@@ -102,7 +102,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
         {
             return new CreateTransactionRequest
             {
-                Amount = (double) src.Amount,
+                Amount = src.Amount,
                 Confirmations = src.Confirmations,
                 BlockId = src.BlockId,
                 FirstSeen = firstSeen,
@@ -120,7 +120,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
                 Confirmations = src.Confirmations,
                 FirstSeen = firstSeen,
                 TransactionId = src.Id,
-                Amount = (double) src.Amount
+                Amount = src.Amount
             };
         }
     }

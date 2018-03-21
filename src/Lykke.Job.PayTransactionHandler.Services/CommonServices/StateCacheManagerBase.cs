@@ -23,15 +23,15 @@ namespace Lykke.Job.PayTransactionHandler.Services.CommonServices
             Log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
-        public async Task<IEnumerable<TItem>> GetState()
+        public async Task<IEnumerable<TItem>> GetStateAsync()
         {
-            return await Cache.Get();
+            return await Cache.GetAsync();
         }
 
-        public abstract Task ClearOutOfDate();
+        public abstract Task ClearOutOfDateAsync();
 
-        public abstract Task UpdateTransactions(IEnumerable<TTransaction> transactions);
+        public abstract Task UpdateTransactionsAsync(IEnumerable<TTransaction> transactions);
 
-        public abstract Task Warmup();
+        public abstract Task WarmupAsync();
     }
 }

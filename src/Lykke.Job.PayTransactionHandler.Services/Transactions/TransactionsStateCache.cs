@@ -13,20 +13,20 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
         {
         }
 
-        public override async Task Add(TransactionState item) =>
-            await Storage.Set(item.Transaction.Id, item);
+        public override async Task AddAsync(TransactionState item) =>
+            await Storage.SetAsync(item.Transaction.Id, item);
 
-        public override async Task AddRange(IEnumerable<TransactionState> items)
+        public override async Task AddRangeAsync(IEnumerable<TransactionState> items)
         {
-            var tasks = items.Select(x => Storage.Set(x.Transaction.Id, x));
+            var tasks = items.Select(x => Storage.SetAsync(x.Transaction.Id, x));
 
             await Task.WhenAll(tasks);
         }
 
-        public override async Task Remove(TransactionState item) =>
-            await Storage.Remove(item.Transaction.Id);
+        public override async Task RemoveAsync(TransactionState item) =>
+            await Storage.RemoveAsync(item.Transaction.Id);
 
-        public override async Task Update(TransactionState item) =>
-            await Storage.Set(item.Transaction.Id, item);
+        public override async Task UpdateAsync(TransactionState item) =>
+            await Storage.SetAsync(item.Transaction.Id, item);
     }
 }

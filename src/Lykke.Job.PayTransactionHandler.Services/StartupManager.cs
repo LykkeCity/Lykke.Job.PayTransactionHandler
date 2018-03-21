@@ -27,13 +27,13 @@ namespace Lykke.Job.PayTransactionHandler.Services
         {
             await _log.WriteInfoAsync(nameof(StartupManager), nameof(StartAsync), "Warming up wallets cache ...");
 
-            await _walletsStateCacheWarmer.Warmup();
+            await _walletsStateCacheWarmer.WarmupAsync();
 
             await _log.WriteInfoAsync(nameof(StartupManager), nameof(StartAsync), "Done.");
 
             await _log.WriteInfoAsync(nameof(StartupManager), nameof(StartAsync), "Warming up transactions cache ...");
 
-            await _transactionsStateCacheWarmer.Warmup();
+            await _transactionsStateCacheWarmer.WarmupAsync();
 
             await _log.WriteInfoAsync(nameof(StartupManager), nameof(StartAsync), "Done.");
         }

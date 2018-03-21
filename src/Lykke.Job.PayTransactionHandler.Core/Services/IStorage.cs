@@ -5,9 +5,9 @@ namespace Lykke.Job.PayTransactionHandler.Core.Services
 {
     public interface IStorage<T>
     {
-        Task<T> Get(string id);
-        Task Set(string id, T model);
-        Task<IEnumerable<T>> Get();
-        Task<bool> Remove(string id);
+        Task<T> GetAsync(string id);
+        Task SetAsync(string id, T model);
+        Task<IEnumerable<T>> GetAsync();
+        Task<bool> RemoveAsync(string id);
     }
 }

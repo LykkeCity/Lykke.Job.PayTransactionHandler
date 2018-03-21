@@ -48,7 +48,7 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
         private async Task ProcessMessageAsync(NewTransactionMessage arg)
         {
-            await _transactionsCache.Add(new TransactionState
+            await _transactionsCache.AddAsync(new TransactionState
             {
                 Transaction = new BcnTransaction
                 {

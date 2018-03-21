@@ -35,35 +35,35 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             _diffService = diffService ?? throw new ArgumentNullException(nameof(diffService));
         }
 
-        public override async Task Execute()
+        public override async Task ExecuteAsync()
         {
             //todo: move cleaning out of this service
-            await _transactionStateCacheManager.ClearOutOfDate();
+            await _transactionStateCacheManager.ClearOutOfDateAsync();
 
-            IEnumerable<BcnTransaction> initialTransactions = (await _transactionStateCacheManager.GetState()).Select(x => x.Transaction).ToList();
+            IEnumerable<BcnTransaction> initialTransactions = (await _transactionStateCacheManager.GetStateAsync()).Select(x => x.Transaction).ToList();
 
-            var currentTransactions = (await GetBcnTransactions(initialTransactions.Select(x => x.Id))).ToList();
+            var currentTransactions = (await GetBcnTransactionsAsync(initialTransactions.Select(x => x.Id))).ToList();
 
             var updatedTransactions = _diffService.Diff(initialTransactions, currentTransactions);
 
-            await Broadcast(updatedTransactions);
+            await BroadcastAsync(updatedTransactions);
 
-            await _transactionStateCacheManager.UpdateTransactions(currentTransactions);
+            await _transactionStateCacheManager.UpdateTransactionsAsync(currentTransactions);
         }
 
-        public override Task CreateTransaction(BcnTransaction tx)
+        public override Task CreateTransactionAsync(BcnTransaction tx)
         {
             throw new NotSupportedException();
         }
 
-        public override async Task UpdateTransaction(BcnTransaction tx)
+        public override async Task UpdateTransactionAsync(BcnTransaction tx)
         {
             //todo: FirstSeen has to be a part of domain model BcnTransaction, also a part of NewTransactionMessage
             var txDetails = await QBitNinjaClient.GetTransaction(new uint256(tx.Id));
 
             await PayInternalClient.UpdateTransactionAsync(new UpdateTransactionRequest
             {
-                Amount = (double) tx.Amount,
+                Amount = tx.Amount,
                 Confirmations = tx.Confirmations,
                 BlockId = tx.BlockId,
                 TransactionId = tx.Id,
@@ -71,7 +71,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             });
         }
 
-        public override async Task<IEnumerable<BcnTransaction>> GetBcnTransactions(IEnumerable<string> transactionIds)
+        public override async Task<IEnumerable<BcnTransaction>> GetBcnTransactionsAsync(IEnumerable<string> transactionIds)
         {
             var transactions = new List<GetTransactionResponse>();
 

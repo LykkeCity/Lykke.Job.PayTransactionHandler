@@ -34,10 +34,10 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             _log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
-        public async Task WarmUp()
+        public async Task WarmUpAsync()
         {
             IEnumerable<TransactionStateResponse> transactionsState =
-                await _payInternalClient.GetAllMonitoredTransactions();
+                await _payInternalClient.GetAllMonitoredTransactionsAsync();
 
             foreach (var txStateResponse in transactionsState)
             {
@@ -47,7 +47,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             }
         }
 
-        public async Task Wipe()
+        public async Task WipeAsync()
         {
             IEnumerable<TransactionState> cached = await _cache.GetPartitionAsync<TransactionState>(CachePartitionName);
 
@@ -63,20 +63,20 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
 
                 await _cache.RemoveWithPartitionAsync(CachePartitionName, txState.Transaction.Id);
 
-                await _log.WriteInfoAsync(nameof(TransactionStateCacheMaintainer), nameof(Wipe),
+                await _log.WriteInfoAsync(nameof(TransactionStateCacheMaintainer), nameof(WipeAsync),
                     $"Cleared transactions {txState.Transaction.Id} from cache with dudate = {txState.DueDate}");
             }
         }
 
-        public async Task UpdateItem(TransactionState item)
+        public async Task UpdateItemAsync(TransactionState item)
         {
             await _cache.SetWithPartitionAsync(CachePartitionName, item.Transaction.Id, item);
 
-            await _log.WriteInfoAsync(nameof(TransactionStateCacheMaintainer), nameof(UpdateItem),
+            await _log.WriteInfoAsync(nameof(TransactionStateCacheMaintainer), nameof(UpdateItemAsync),
                 $"Updated transaction {item.Transaction.Id} in cache");
         }
 
-        public async Task<IEnumerable<TransactionState>> Get()
+        public async Task<IEnumerable<TransactionState>> GetAsync()
         {
             return await _cache.GetPartitionAsync<TransactionState>(CachePartitionName);
         }

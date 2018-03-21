@@ -27,15 +27,15 @@ namespace Lykke.Job.PayTransactionHandler.Services.CommonServices
             Log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
-        public abstract Task Execute();
+        public abstract Task ExecuteAsync();
 
-        public abstract Task CreateTransaction(T tx);
+        public abstract Task CreateTransactionAsync(T tx);
 
-        public abstract Task UpdateTransaction(T tx);
+        public abstract Task UpdateTransactionAsync(T tx);
 
-        public abstract Task<IEnumerable<T>> GetBcnTransactions(IEnumerable<string> data);
+        public abstract Task<IEnumerable<T>> GetBcnTransactionsAsync(IEnumerable<string> data);
 
-        protected async Task Broadcast(IEnumerable<DiffResult<T>> updated)
+        protected async Task BroadcastAsync(IEnumerable<DiffResult<T>> updated)
         {
             foreach (var diffResult in updated)
             {
@@ -45,13 +45,13 @@ namespace Lykke.Job.PayTransactionHandler.Services.CommonServices
                 {
                     case DiffState.New:
 
-                        await CreateTransaction(tx);
+                        await CreateTransactionAsync(tx);
 
                         break;
 
                     case DiffState.Updated:
 
-                        await UpdateTransaction(tx);
+                        await UpdateTransactionAsync(tx);
 
                         break;
 

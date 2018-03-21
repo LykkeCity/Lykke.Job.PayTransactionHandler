@@ -29,9 +29,9 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             _confirmationsLimit = confirmationsLimit;
         }
 
-        public override async Task ClearOutOfDate()
+        public override async Task ClearOutOfDateAsync()
         {
-            IEnumerable<TransactionState> state = await Cache.Get();
+            IEnumerable<TransactionState> state = await Cache.GetAsync();
 
             IEnumerable<TransactionState> toRemove =
                 state.Where(x => x.IsConfirmed(_confirmationsLimit) || x.IsExpired());
@@ -45,20 +45,20 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
                         TransactionId = txState.Transaction.Id
                     });
 
-                    await Log.WriteInfoAsync(nameof(TransactionsStateCacheManager), nameof(ClearOutOfDate),
+                    await Log.WriteInfoAsync(nameof(TransactionsStateCacheManager), nameof(ClearOutOfDateAsync),
                         $"Cleared transaction {txState.Transaction.Id} from cache as expired");
                 }
 
-                await Cache.Remove(txState);
+                await Cache.RemoveAsync(txState);
 
-                await Log.WriteInfoAsync(nameof(TransactionsStateCacheManager), nameof(ClearOutOfDate),
+                await Log.WriteInfoAsync(nameof(TransactionsStateCacheManager), nameof(ClearOutOfDateAsync),
                     $"Cleared transaction {txState.Transaction.Id} from cache with confirmations = {txState.Transaction.Confirmations}");
             }
         }
 
-        public override async Task UpdateTransactions(IEnumerable<BcnTransaction> transactions)
+        public override async Task UpdateTransactionsAsync(IEnumerable<BcnTransaction> transactions)
         {
-            IEnumerable<TransactionState> state = (await Cache.Get()).ToList();
+            IEnumerable<TransactionState> state = (await Cache.GetAsync()).ToList();
 
             foreach (var blockchainTransaction in transactions)
             {
@@ -66,18 +66,18 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
 
                 transactionState.Transaction = blockchainTransaction;
 
-                await Cache.Update(transactionState);
+                await Cache.UpdateAsync(transactionState);
 
-                await Log.WriteInfoAsync(nameof(TransactionsStateCacheManager), nameof(UpdateTransactions),
+                await Log.WriteInfoAsync(nameof(TransactionsStateCacheManager), nameof(UpdateTransactionsAsync),
                     $"Updated transaction {transactionState.Transaction.Id} in cache");
             }
         }
 
-        public override async Task Warmup()
+        public override async Task WarmupAsync()
         {
-            IEnumerable<TransactionStateResponse> transactions = await PayInternalClient.GetAllMonitoredTransactions();
+            IEnumerable<TransactionStateResponse> transactions = await PayInternalClient.GetAllMonitoredTransactionsAsync();
 
-            await Cache.AddRange(transactions.Select(x => new TransactionState
+            await Cache.AddRangeAsync(transactions.Select(x => new TransactionState
             {
                 Transaction = x.ToDomainTransaction(),
                 DueDate = x.DueDate

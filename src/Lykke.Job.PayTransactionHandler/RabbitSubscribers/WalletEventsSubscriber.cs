@@ -49,7 +49,7 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
         private async Task ProcessMessageAsync(NewWalletMessage arg)
         {
-            await _walletsCache.Add(new WalletState
+            await _walletsCache.AddAsync(new WalletState
             {
                 Address = arg.Address,
                 DueDate = arg.DueDate,

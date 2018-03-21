@@ -9,25 +9,25 @@ namespace Lykke.Job.PayTransactionHandler.Core.Services
         /// Warms up the cache 
         /// </summary>
         /// <returns></returns>
-        Task WarmUp();
+        Task WarmUpAsync();
 
         /// <summary>
         /// Clears outdated items from the cache
         /// </summary>
         /// <returns></returns>
-        Task Wipe();
+        Task WipeAsync();
 
         /// <summary>
         /// Updates item in the cache
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        Task UpdateItem(T item);
+        Task UpdateItemAsync(T item);
 
         /// <summary>
         /// Returns all the items from the cache
         /// </summary>
         /// <returns></returns>
-        Task<IEnumerable<T>> Get();
+        Task<IEnumerable<T>> GetAsync();
     }
 }

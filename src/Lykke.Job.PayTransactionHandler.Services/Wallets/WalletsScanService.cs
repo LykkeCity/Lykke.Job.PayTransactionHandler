@@ -42,32 +42,32 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
             _bitcoinNetwork = Network.GetNetwork(bitcoinNetwork);
         }
 
-        public override async Task Execute()
+        public override async Task ExecuteAsync()
         {
             //todo: move cleaning out of this service
-            await _walletsStateCacheManager.ClearOutOfDate();
+            await _walletsStateCacheManager.ClearOutOfDateAsync();
 
-            var walletsInitialState = (await _walletsStateCacheManager.GetState()).ToList();
+            var walletsInitialState = (await _walletsStateCacheManager.GetStateAsync()).ToList();
 
             var initialTransactions = walletsInitialState.SelectMany(x => x.Transactions);
 
-            var currentTransactions = (await GetBcnTransactions(walletsInitialState.Select(x => x.Address))).ToList();
+            var currentTransactions = (await GetBcnTransactionsAsync(walletsInitialState.Select(x => x.Address))).ToList();
 
             var updatedTransactions = _diffService.Diff(initialTransactions, currentTransactions);
 
-            await Broadcast(updatedTransactions);
+            await BroadcastAsync(updatedTransactions);
 
-            await _walletsStateCacheManager.UpdateTransactions(currentTransactions);
+            await _walletsStateCacheManager.UpdateTransactionsAsync(currentTransactions);
         }
 
-        public override async Task CreateTransaction(PaymentBcnTransaction tx)
+        public override async Task CreateTransactionAsync(PaymentBcnTransaction tx)
         {
             var txDetails = await QBitNinjaClient.GetTransaction(new uint256(tx.Id));
 
             await PayInternalClient.CreatePaymentTransactionAsync(new CreateTransactionRequest
             {
                 WalletAddress = tx.WalletAddress,
-                Amount = (double) tx.Amount,
+                Amount = tx.Amount,
                 FirstSeen = txDetails.FirstSeen.DateTime,
                 TransactionId = tx.Id,
                 Confirmations = tx.Confirmations,
@@ -78,19 +78,19 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
             });
         }
 
-        public override async Task UpdateTransaction(PaymentBcnTransaction tx)
+        public override async Task UpdateTransactionAsync(PaymentBcnTransaction tx)
         {
             await PayInternalClient.UpdateTransactionAsync(new UpdateTransactionRequest
             {
                 WalletAddress = tx.WalletAddress,
-                Amount = (double) tx.Amount,
+                Amount = tx.Amount,
                 Confirmations = tx.Confirmations,
                 BlockId = tx.BlockId,
                 TransactionId = tx.Id
             });
         }
 
-        public override async Task<IEnumerable<PaymentBcnTransaction>> GetBcnTransactions(IEnumerable<string> addresses)
+        public override async Task<IEnumerable<PaymentBcnTransaction>> GetBcnTransactionsAsync(IEnumerable<string> addresses)
         {
             var balances = new List<CommonBalanceModel>();
 

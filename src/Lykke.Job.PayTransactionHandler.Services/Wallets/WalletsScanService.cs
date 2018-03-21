@@ -9,7 +9,6 @@ using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Job.PayTransactionHandler.Services.CommonModels;
 using Lykke.Job.PayTransactionHandler.Services.CommonServices;
 using Lykke.Service.PayInternal.Client;
-using Lykke.Service.PayInternal.Client.Models;
 using Lykke.Service.PayInternal.Client.Models.Transactions;
 using MoreLinq;
 using NBitcoin;
@@ -17,16 +16,21 @@ using QBitNinja.Client;
 
 namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 {
+    /// <summary>
+    /// Scans bitcoin blockchain for incoming payment transactions by wallet address
+    /// </summary>
     public class WalletsScanService : ScanServiceBase<PaymentBcnTransaction>
     {
         private readonly ITransactionStateCacheManager<WalletState, PaymentBcnTransaction> _walletsStateCacheManager;
         private readonly IDiffService<PaymentBcnTransaction> _diffService;
+        private readonly Network _bitcoinNetwork;
 
         public WalletsScanService(
             IPayInternalClient payInternalClient,
             QBitNinjaClient qBitNinjaClient,
             ITransactionStateCacheManager<WalletState, PaymentBcnTransaction> walletsStateCacheManager,
             IDiffService<PaymentBcnTransaction> diffService,
+            string bitcoinNetwork,
             ILog log) : base(
                 payInternalClient,
                 qBitNinjaClient,
@@ -35,6 +39,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
             _walletsStateCacheManager = walletsStateCacheManager ??
                                         throw new ArgumentNullException(nameof(walletsStateCacheManager));
             _diffService = diffService ?? throw new ArgumentNullException(nameof(diffService));
+            _bitcoinNetwork = Network.GetNetwork(bitcoinNetwork);
         }
 
         public override async Task Execute()
@@ -68,7 +73,8 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                 Confirmations = tx.Confirmations,
                 BlockId = tx.BlockId,
                 Blockchain = tx.Blockchain,
-                AssetId = tx.AssetId
+                AssetId = tx.AssetId,
+                SourceWalletAddresses = txDetails.GetSourceWalletAddresses(_bitcoinNetwork).Select(x => x.ToString()).ToArray()
             });
         }
 
@@ -105,7 +111,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                     })));
             }
 
-            return balances.SelectMany(x => x.GetTransactions());
+            return balances.SelectMany(x => x.GetPaymentTransactions(_bitcoinNetwork));
         }
     }
 }

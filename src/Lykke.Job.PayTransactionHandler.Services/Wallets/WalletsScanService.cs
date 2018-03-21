@@ -16,6 +16,9 @@ using QBitNinja.Client;
 
 namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 {
+    /// <summary>
+    /// Scans bitcoin blockchain for incoming payment transactions by wallet address
+    /// </summary>
     public class WalletsScanService : ScanServiceBase<PaymentBcnTransaction>
     {
         private readonly ITransactionStateCacheManager<WalletState, PaymentBcnTransaction> _walletsStateCacheManager;

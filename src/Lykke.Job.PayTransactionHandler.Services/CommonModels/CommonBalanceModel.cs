@@ -3,6 +3,7 @@ using NBitcoin;
 using QBitNinja.Client.Models;
 using System.Collections.Generic;
 using System.Linq;
+using Lykke.Job.PayTransactionHandler.Core;
 
 namespace Lykke.Job.PayTransactionHandler.Services.CommonModels
 {
@@ -13,20 +14,21 @@ namespace Lykke.Job.PayTransactionHandler.Services.CommonModels
 
         public IEnumerable<PaymentBcnTransaction> GetPaymentTransactions(Network network)
         {
-            return Balance?.Operations?.Where(o =>
-                    o.ReceivedCoins.Any(coin => coin.GetDestinationAddress(network).ToString().Equals(WalletAddress)))
-                .Select(x => new PaymentBcnTransaction
-                {
-                    WalletAddress = WalletAddress,
-                    //todo: shouldn't take the whole amount of operation but only amount of coin with WalletAddress
-                    //This will not work for transactions with multiple payment sources
-                    Amount = x.Amount.ToDecimal(MoneyUnit.Satoshi),
-                    AssetId = nameof(MoneyUnit.Satoshi),
-                    Blockchain = "Bitcoin",
-                    Id = x.TransactionId.ToString(),
-                    BlockId = x.BlockId?.ToString(),
-                    Confirmations = x.Confirmations
-                });
+            return Balance?.Operations?
+                .Where(o => o.ReceivedCoins.Any(coin =>
+                    coin.GetDestinationAddress(network).ToString().Equals(WalletAddress))).Select(x =>
+                    new PaymentBcnTransaction
+                    {
+                        WalletAddress = WalletAddress,
+						//todo: shouldn't take the whole amount of operation but only amount of coin with WalletAddress
+                    	//This will not work for transactions with multiple payment sources
+                        Amount = x.Amount.ToDecimal(MoneyUnit.Satoshi),
+                        AssetId = nameof(MoneyUnit.Satoshi),
+                        Blockchain = BlockchainType.Bitcoin.ToString(),
+                        Id = x.TransactionId.ToString(),
+                        BlockId = x.BlockId?.ToString(),
+                        Confirmations = x.Confirmations
+                    });
         }
     }
 }

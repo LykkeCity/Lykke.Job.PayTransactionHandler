@@ -19,9 +19,9 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
         private readonly ILog _log;
         private readonly RabbitMqSettings _settings;
         private RabbitMqSubscriber<NewWalletMessage> _subscriber;
-        private readonly ICache<WalletState> _walletsCache;
+        private readonly ICacheMaintainer<WalletState> _walletsCache;
 
-        public WalletEventsSubscriber(ILog log, RabbitMqSettings settings, ICache<WalletState> walletsCache)
+        public WalletEventsSubscriber(ILog log, RabbitMqSettings settings, ICacheMaintainer<WalletState> walletsCache)
         {
             _log = log;
             _settings = settings;
@@ -49,7 +49,7 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
         private async Task ProcessMessageAsync(NewWalletMessage arg)
         {
-            await _walletsCache.AddAsync(new WalletState
+            await _walletsCache.SetItemAsync(new WalletState
             {
                 Address = arg.Address,
                 DueDate = arg.DueDate,

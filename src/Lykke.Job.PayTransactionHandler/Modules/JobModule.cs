@@ -16,7 +16,6 @@ using Microsoft.Extensions.DependencyInjection;
 using QBitNinja.Client;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
-using Lykke.Job.PayTransactionHandler.Services.CommonServices;
 using Lykke.Job.PayTransactionHandler.Services.Transactions;
 using Lykke.Job.PayTransactionHandler.Services.Wallets;
 

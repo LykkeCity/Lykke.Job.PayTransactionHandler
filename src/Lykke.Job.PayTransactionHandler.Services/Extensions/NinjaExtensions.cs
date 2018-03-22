@@ -3,7 +3,7 @@ using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using NBitcoin;
 using QBitNinja.Client.Models;
 
-namespace Lykke.Job.PayTransactionHandler.Services
+namespace Lykke.Job.PayTransactionHandler.Services.Extensions
 {
     public static class NinjaExtensions
     {

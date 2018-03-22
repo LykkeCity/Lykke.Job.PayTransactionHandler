@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Net;
+using Lykke.Common.Api.Contract.Responses;
 using Lykke.Job.PayTransactionHandler.Core.Services;
-using Lykke.Job.PayTransactionHandler.Models;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 

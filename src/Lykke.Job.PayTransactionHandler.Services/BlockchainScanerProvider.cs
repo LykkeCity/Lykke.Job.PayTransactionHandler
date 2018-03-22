@@ -3,7 +3,7 @@ using Autofac.Features.Indexed;
 using Lykke.Job.PayTransactionHandler.Core;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 
-namespace Lykke.Job.PayTransactionHandler.Services.CommonServices
+namespace Lykke.Job.PayTransactionHandler.Services
 {
     public class BlockchainScanerProvider : IBlockchainScanerProvider
     {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Lykke.Job.PayTransactionHandler.Core;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
@@ -8,7 +9,7 @@ using Lykke.Service.PayInternal.Client.Models.Wallets;
 using NBitcoin;
 using QBitNinja.Client.Models;
 
-namespace Lykke.Job.PayTransactionHandler.Services
+namespace Lykke.Job.PayTransactionHandler.Services.Extensions
 {
     public static class ConvertExtensions
     {
@@ -66,7 +67,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
                 Amount = src.SpentCoins.Sum(x => x.TxOut.Value.ToDecimal(MoneyUnit.Satoshi)),
                 Confirmations = src.Block?.Confirmations ?? 0,
                 BlockId = src.Block?.BlockId?.ToString(),
-                Blockchain = "Bitcoin",
+                Blockchain = BlockchainType.Bitcoin.ToString(),
                 AssetId = nameof(MoneyUnit.Satoshi)
             };
         }

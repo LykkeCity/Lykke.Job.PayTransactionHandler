@@ -5,6 +5,7 @@ using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.DiffService;
 using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
+using Lykke.Job.PayTransactionHandler.Services.Extensions;
 using Lykke.Service.PayInternal.Client;
 using NBitcoin;
 using QBitNinja.Client;

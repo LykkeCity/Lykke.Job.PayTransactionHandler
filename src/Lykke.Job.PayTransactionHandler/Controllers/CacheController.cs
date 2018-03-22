@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Common.Log;
-using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
@@ -15,13 +14,13 @@ namespace Lykke.Job.PayTransactionHandler.Controllers
     [Route("api/[controller]")]
     public class CacheController : Controller
     {
-        private readonly ITransactionStateCacheManager<WalletState, PaymentBcnTransaction> _walletsStateCacheManager;
-        private readonly ITransactionStateCacheManager<TransactionState, BcnTransaction> _transactionStateCacheManager;
+        private readonly ICacheMaintainer<WalletState> _walletsStateCacheManager;
+        private readonly ICacheMaintainer<TransactionState> _transactionStateCacheManager;
         private readonly ILog _log;
 
         public CacheController(
-            ITransactionStateCacheManager<WalletState, PaymentBcnTransaction> walletsStateCacheManager,
-            ITransactionStateCacheManager<TransactionState, BcnTransaction> transactionStateCacheManager,
+            ICacheMaintainer<WalletState> walletsStateCacheManager,
+            ICacheMaintainer<TransactionState> transactionStateCacheManager,
             ILog log)
         {
             _walletsStateCacheManager = walletsStateCacheManager ??
@@ -40,7 +39,7 @@ namespace Lykke.Job.PayTransactionHandler.Controllers
         {
             try
             {
-                return Ok(await _walletsStateCacheManager.GetStateAsync());
+                return Ok(await _walletsStateCacheManager.GetAsync());
             }
             catch (Exception ex)
             {
@@ -59,7 +58,7 @@ namespace Lykke.Job.PayTransactionHandler.Controllers
         {
             try
             {
-                return Ok(await _transactionStateCacheManager.GetStateAsync());
+                return Ok(await _transactionStateCacheManager.GetAsync());
             }
             catch (Exception ex)
             {

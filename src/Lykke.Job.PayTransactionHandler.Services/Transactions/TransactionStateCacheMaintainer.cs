@@ -7,6 +7,7 @@ using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Extensions;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Service.PayInternal.Client;
+using Lykke.Service.PayInternal.Client.Models.Transactions;
 using Lykke.Service.PayInternal.Client.Models.Wallets;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -58,7 +59,13 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             {
                 if (txState.IsExpired())
                 {
-                    //todo: notify PayInternal about transaction expired by DueDate
+                    await _payInternalClient.SetTransactionExpiredAsync(new TransactionExpiredRequest
+                    {
+                        TransactionId = txState.Transaction.Id
+                    });
+
+                    await _log.WriteInfoAsync(nameof(TransactionStateCacheMaintainer), nameof(WipeAsync),
+                        $"Cleared transaction {txState.Transaction.Id} from cache as expired");
                 }
 
                 await _cache.RemoveWithPartitionAsync(CachePartitionName, txState.Transaction.Id);
@@ -68,11 +75,11 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             }
         }
 
-        public async Task UpdateItemAsync(TransactionState item)
+        public async Task SetItemAsync(TransactionState item)
         {
             await _cache.SetWithPartitionAsync(CachePartitionName, item.Transaction.Id, item);
 
-            await _log.WriteInfoAsync(nameof(TransactionStateCacheMaintainer), nameof(UpdateItemAsync),
+            await _log.WriteInfoAsync(nameof(TransactionStateCacheMaintainer), nameof(SetItemAsync),
                 $"Updated transaction {item.Transaction.Id} in cache");
         }
 

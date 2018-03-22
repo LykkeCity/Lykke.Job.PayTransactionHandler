@@ -18,11 +18,11 @@ namespace Lykke.Job.PayTransactionHandler.Core.Services
         Task WipeAsync();
 
         /// <summary>
-        /// Updates item in the cache
+        /// Adds or updates item in the cache
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        Task UpdateItemAsync(T item);
+        Task SetItemAsync(T item);
 
         /// <summary>
         /// Returns all the items from the cache

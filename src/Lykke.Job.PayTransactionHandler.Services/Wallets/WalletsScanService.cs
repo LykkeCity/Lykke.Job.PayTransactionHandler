@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Common;
+using Common.Log;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.DiffService;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Job.PayTransactionHandler.Services.Extensions;
 using Lykke.Service.PayInternal.Client;
+using Lykke.Service.PayInternal.Client.Models.Transactions;
 using NBitcoin;
 using QBitNinja.Client;
 using QBitNinja.Client.Models;
@@ -21,12 +24,14 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
         private readonly IDiffService<PaymentBcnTransaction> _diffService;
         private readonly IPayInternalClient _payInternalClient;
         private readonly Network _bitcoinNetwork;
+        private readonly ILog _log;
 
         public WalletsScanService(
             ICacheMaintainer<WalletState> cacheMaintainer,
             QBitNinjaClient qBitNinjaClient,
             IDiffService<PaymentBcnTransaction> diffService,
             IPayInternalClient payInternalClient,
+            ILog log,
             string bitcoinNetwork)
         {
             _cacheMaintainer = cacheMaintainer ?? throw new ArgumentNullException(nameof(cacheMaintainer));
@@ -34,6 +39,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
             _diffService = diffService ?? throw new ArgumentNullException(nameof(diffService));
             _payInternalClient = payInternalClient ?? throw new ArgumentNullException(nameof(payInternalClient));
             _bitcoinNetwork = Network.GetNetwork(bitcoinNetwork);
+            _log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
         public async Task ExecuteAsync()
@@ -60,15 +66,39 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                     {
                         case DiffState.New:
 
-                            var txDetails = await _qBitNinjaClient.GetTransaction(new uint256(tx.Id));
+                            CreateTransactionRequest createRequest = null;
 
-                            await _payInternalClient.CreatePaymentTransactionAsync(tx.ToCreateRequest(txDetails, _bitcoinNetwork));
+                            try
+                            {
+                                var txDetails = await _qBitNinjaClient.GetTransaction(new uint256(tx.Id));
+
+                                createRequest = tx.ToCreateRequest(txDetails, _bitcoinNetwork);
+
+                                await _payInternalClient.CreatePaymentTransactionAsync(createRequest);
+                            }
+                            catch (Exception ex)
+                            {
+                                await _log.WriteErrorAsync(nameof(WalletsScanService), nameof(ExecuteAsync),
+                                    createRequest?.ToJson(), ex);
+                            }
 
                             break;
 
                         case DiffState.Updated:
 
-                            await _payInternalClient.UpdateTransactionAsync(tx.ToUpdateRequest());
+                            UpdateTransactionRequest updateRequest = null;
+
+                            try
+                            {
+                                updateRequest = tx.ToUpdateRequest();
+
+                                await _payInternalClient.UpdateTransactionAsync(updateRequest);
+                            }
+                            catch (Exception ex)
+                            {
+                                await _log.WriteErrorAsync(nameof(WalletsScanService), nameof(ExecuteAsync),
+                                    updateRequest?.ToJson(), ex);
+                            }
 
                             break;
 

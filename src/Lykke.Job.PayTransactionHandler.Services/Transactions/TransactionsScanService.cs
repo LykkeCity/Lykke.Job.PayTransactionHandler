@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Common;
+using Common.Log;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.DiffService;
 using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Job.PayTransactionHandler.Services.Extensions;
 using Lykke.Service.PayInternal.Client;
+using Lykke.Service.PayInternal.Client.Models.Transactions;
 using NBitcoin;
 using QBitNinja.Client;
 using QBitNinja.Client.Models;
@@ -19,17 +22,20 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
         private readonly QBitNinjaClient _qBitNinjaClient;
         private readonly IDiffService<BcnTransaction> _diffService;
         private readonly IPayInternalClient _payInternalClient;
+        private readonly ILog _log;
 
         public TransactionsScanService(
             ICacheMaintainer<TransactionState> cacheMaintainer,
             QBitNinjaClient qBitNinjaClient,
             IDiffService<BcnTransaction> diffService,
-            IPayInternalClient payInternalClient)
+            IPayInternalClient payInternalClient,
+            ILog log)
         {
             _cacheMaintainer = cacheMaintainer ?? throw new ArgumentNullException(nameof(cacheMaintainer));
             _qBitNinjaClient = qBitNinjaClient ?? throw new ArgumentNullException(nameof(qBitNinjaClient));
             _diffService = diffService ?? throw new ArgumentNullException(nameof(diffService));
             _payInternalClient = payInternalClient ?? throw new ArgumentNullException(nameof(payInternalClient));
+            _log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
         public async Task ExecuteAsync()
@@ -54,12 +60,27 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
                     switch (diffResult.CompareState)
                     {
                         case DiffState.New:
-                            throw new NotSupportedException();
+
+                            await _log.WriteWarningAsync(nameof(TransactionsScanService), nameof(ExecuteAsync),
+                                tx?.ToJson(), "New transactions are not supported by watcher");
+
+                            break;
 
                         case DiffState.Updated:
 
-                            await _payInternalClient.UpdateTransactionAsync(
-                                tx.ToUpdateRequest(bcnTransactionState.FirstSeen.DateTime));
+                            UpdateTransactionRequest updateRequest = null;
+
+                            try
+                            {
+                                updateRequest = tx.ToUpdateRequest(bcnTransactionState.FirstSeen.DateTime);
+
+                                await _payInternalClient.UpdateTransactionAsync(updateRequest);
+                            }
+                            catch (Exception ex)
+                            {
+                                await _log.WriteErrorAsync(nameof(TransactionsScanService), nameof(ExecuteAsync),
+                                    updateRequest?.ToJson(), ex);
+                            }
 
                             break;
 

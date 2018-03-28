@@ -13,8 +13,8 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
             return new PaymentBcnTransaction
             {
                 WalletAddress = walletAddress,
-                Amount = src.Amount.ToDecimal(MoneyUnit.Satoshi),
-                AssetId = nameof(MoneyUnit.Satoshi),
+                Amount = src.Amount.ToDecimal(MoneyUnit.BTC),
+                AssetId = nameof(MoneyUnit.BTC),
                 Blockchain = bcnType.ToString(),
                 Id = src.TransactionId.ToString(),
                 BlockId = src.BlockId?.ToString(),

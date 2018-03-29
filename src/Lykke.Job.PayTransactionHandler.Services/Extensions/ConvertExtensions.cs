@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Lykke.Job.PayTransactionHandler.Core;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
@@ -8,7 +9,7 @@ using Lykke.Service.PayInternal.Client.Models.Wallets;
 using NBitcoin;
 using QBitNinja.Client.Models;
 
-namespace Lykke.Job.PayTransactionHandler.Services
+namespace Lykke.Job.PayTransactionHandler.Services.Extensions
 {
     public static class ConvertExtensions
     {
@@ -63,15 +64,15 @@ namespace Lykke.Job.PayTransactionHandler.Services
             return new BcnTransaction
             {
                 Id = src.TransactionId.ToString(),
-                Amount = src.SpentCoins.Sum(x => x.TxOut.Value.ToDecimal(MoneyUnit.Satoshi)),
+                Amount = src.SpentCoins.Sum(x => x.TxOut.Value.ToDecimal(MoneyUnit.BTC)),
                 Confirmations = src.Block?.Confirmations ?? 0,
                 BlockId = src.Block?.BlockId?.ToString(),
-                Blockchain = "Bitcoin",
-                AssetId = nameof(MoneyUnit.Satoshi)
+                Blockchain = BlockchainType.Bitcoin.ToString(),
+                AssetId = nameof(MoneyUnit.BTC)
             };
         }
 
-        public static CreateTransactionRequest ToCreateRequest(this PaymentBcnTransaction src, DateTime firstSeen)
+        public static CreateTransactionRequest ToCreateRequest(this PaymentBcnTransaction src, GetTransactionResponse txDetails, Network network)
         {
             return new CreateTransactionRequest
             {
@@ -79,10 +80,11 @@ namespace Lykke.Job.PayTransactionHandler.Services
                 Amount = src.Amount,
                 Confirmations = src.Confirmations,
                 BlockId = src.BlockId,
-                FirstSeen = firstSeen,
+                FirstSeen = txDetails.FirstSeen.DateTime,
                 TransactionId = src.Id,
                 Blockchain = src.Blockchain,
-                AssetId = src.AssetId
+                AssetId = src.AssetId,
+                SourceWalletAddresses = txDetails.GetSourceWalletAddresses(network).Select(x => x.ToString()).ToArray()
             };
         }
 

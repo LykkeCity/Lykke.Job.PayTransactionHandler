@@ -2,116 +2,114 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Common;
 using Common.Log;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
+using Lykke.Job.PayTransactionHandler.Core.Domain.DiffService;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
-using Lykke.Job.PayTransactionHandler.Services.CommonModels;
-using Lykke.Job.PayTransactionHandler.Services.CommonServices;
+using Lykke.Job.PayTransactionHandler.Services.Extensions;
 using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInternal.Client.Models.Transactions;
-using MoreLinq;
 using NBitcoin;
 using QBitNinja.Client;
+using QBitNinja.Client.Models;
 
 namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 {
-    /// <summary>
-    /// Scans bitcoin blockchain for incoming payment transactions by wallet address
-    /// </summary>
-    public class WalletsScanService : ScanServiceBase<PaymentBcnTransaction>
+    public class WalletsScanService : IScanService
     {
-        private readonly ITransactionStateCacheManager<WalletState, PaymentBcnTransaction> _walletsStateCacheManager;
+        private readonly ICacheMaintainer<WalletState> _cacheMaintainer;
+        private readonly QBitNinjaClient _qBitNinjaClient;
         private readonly IDiffService<PaymentBcnTransaction> _diffService;
+        private readonly IPayInternalClient _payInternalClient;
         private readonly Network _bitcoinNetwork;
+        private readonly ILog _log;
 
         public WalletsScanService(
-            IPayInternalClient payInternalClient,
+            ICacheMaintainer<WalletState> cacheMaintainer,
             QBitNinjaClient qBitNinjaClient,
-            ITransactionStateCacheManager<WalletState, PaymentBcnTransaction> walletsStateCacheManager,
             IDiffService<PaymentBcnTransaction> diffService,
-            string bitcoinNetwork,
-            ILog log) : base(
-                payInternalClient,
-                qBitNinjaClient,
-                log)
+            IPayInternalClient payInternalClient,
+            ILog log,
+            string bitcoinNetwork)
         {
-            _walletsStateCacheManager = walletsStateCacheManager ??
-                                        throw new ArgumentNullException(nameof(walletsStateCacheManager));
+            _cacheMaintainer = cacheMaintainer ?? throw new ArgumentNullException(nameof(cacheMaintainer));
+            _qBitNinjaClient = qBitNinjaClient ?? throw new ArgumentNullException(nameof(qBitNinjaClient));
             _diffService = diffService ?? throw new ArgumentNullException(nameof(diffService));
+            _payInternalClient = payInternalClient ?? throw new ArgumentNullException(nameof(payInternalClient));
             _bitcoinNetwork = Network.GetNetwork(bitcoinNetwork);
+            _log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
-        public override async Task ExecuteAsync()
+        public async Task ExecuteAsync()
         {
-            //todo: move cleaning out of this service
-            await _walletsStateCacheManager.ClearOutOfDateAsync();
+            IEnumerable<WalletState> cacheState = await _cacheMaintainer.GetAsync();
 
-            var walletsInitialState = (await _walletsStateCacheManager.GetStateAsync()).ToList();
-
-            var initialTransactions = walletsInitialState.SelectMany(x => x.Transactions);
-
-            var currentTransactions = (await GetBcnTransactionsAsync(walletsInitialState.Select(x => x.Address))).ToList();
-
-            var updatedTransactions = _diffService.Diff(initialTransactions, currentTransactions);
-
-            await BroadcastAsync(updatedTransactions);
-
-            await _walletsStateCacheManager.UpdateTransactionsAsync(currentTransactions);
-        }
-
-        public override async Task CreateTransactionAsync(PaymentBcnTransaction tx)
-        {
-            var txDetails = await QBitNinjaClient.GetTransaction(new uint256(tx.Id));
-
-            await PayInternalClient.CreatePaymentTransactionAsync(new CreateTransactionRequest
+            foreach (var walletState in cacheState)
             {
-                WalletAddress = tx.WalletAddress,
-                Amount = tx.Amount,
-                FirstSeen = txDetails.FirstSeen.DateTime,
-                TransactionId = tx.Id,
-                Confirmations = tx.Confirmations,
-                BlockId = tx.BlockId,
-                Blockchain = tx.Blockchain,
-                AssetId = tx.AssetId,
-                SourceWalletAddresses = txDetails.GetSourceWalletAddresses(_bitcoinNetwork).Select(x => x.ToString()).ToArray()
-            });
-        }
+                BalanceModel balance = await _qBitNinjaClient.GetBalance(BitcoinAddress.Create(walletState.Address));
 
-        public override async Task UpdateTransactionAsync(PaymentBcnTransaction tx)
-        {
-            await PayInternalClient.UpdateTransactionAsync(new UpdateTransactionRequest
-            {
-                WalletAddress = tx.WalletAddress,
-                Amount = tx.Amount,
-                Confirmations = tx.Confirmations,
-                BlockId = tx.BlockId,
-                TransactionId = tx.Id
-            });
-        }
+                IEnumerable<PaymentBcnTransaction> bcnTransactions = balance?.Operations?
+                    .Where(o => o.ReceivedCoins.Any(coin => coin.GetDestinationAddress(_bitcoinNetwork).ToString().Equals(walletState.Address)))
+                    .Select(x => x.ToDomainPaymentTransaction(walletState.Address)).ToList();
 
-        public override async Task<IEnumerable<PaymentBcnTransaction>> GetBcnTransactionsAsync(IEnumerable<string> addresses)
-        {
-            var balances = new List<CommonBalanceModel>();
+                IEnumerable<PaymentBcnTransaction> cacheTransactions = walletState.Transactions;
 
-            foreach (var batch in addresses.Batch(BatchPieceSize))
-            {
-                //todo: use continuation token to get full list of operations
-                await Task.WhenAll(batch.Select(address => QBitNinjaClient.GetBalance(BitcoinAddress.Create(address))
-                    .ContinueWith(t =>
+                IEnumerable<DiffResult<PaymentBcnTransaction>> diff = _diffService.Diff(cacheTransactions, bcnTransactions);
+
+                foreach (var diffResult in diff)
+                {
+                    var tx = diffResult.Object;
+
+                    switch (diffResult.CompareState)
                     {
-                        lock (balances)
-                        {
-                            balances.Add(new CommonBalanceModel
-                            {
-                                WalletAddress = address,
-                                Balance = t.Result
-                            });
-                        }
-                    })));
-            }
+                        case DiffState.New:
 
-            return balances.SelectMany(x => x.GetPaymentTransactions(_bitcoinNetwork));
+                            CreateTransactionRequest createRequest = null;
+
+                            try
+                            {
+                                var txDetails = await _qBitNinjaClient.GetTransaction(new uint256(tx.Id));
+
+                                createRequest = tx.ToCreateRequest(txDetails, _bitcoinNetwork);
+
+                                await _payInternalClient.CreatePaymentTransactionAsync(createRequest);
+                            }
+                            catch (Exception ex)
+                            {
+                                await _log.WriteErrorAsync(nameof(WalletsScanService), nameof(ExecuteAsync),
+                                    createRequest?.ToJson(), ex);
+                            }
+
+                            break;
+
+                        case DiffState.Updated:
+
+                            UpdateTransactionRequest updateRequest = null;
+
+                            try
+                            {
+                                updateRequest = tx.ToUpdateRequest();
+
+                                await _payInternalClient.UpdateTransactionAsync(updateRequest);
+                            }
+                            catch (Exception ex)
+                            {
+                                await _log.WriteErrorAsync(nameof(WalletsScanService), nameof(ExecuteAsync),
+                                    updateRequest?.ToJson(), ex);
+                            }
+
+                            break;
+
+                        default: throw new Exception("Unknown transactions diff state");
+                    }
+                }
+
+                walletState.Transactions = bcnTransactions;
+
+                await _cacheMaintainer.SetItemAsync(walletState);
+            }
         }
     }
 }

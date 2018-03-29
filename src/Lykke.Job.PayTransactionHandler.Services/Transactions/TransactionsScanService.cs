@@ -1,94 +1,98 @@
-﻿using Common.Log;
-using Lykke.Job.PayTransactionHandler.Core.Services;
-using Lykke.Job.PayTransactionHandler.Services.CommonServices;
-using Lykke.Service.PayInternal.Client;
-using QBitNinja.Client;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using Common;
+using Common.Log;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
+using Lykke.Job.PayTransactionHandler.Core.Domain.DiffService;
 using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
+using Lykke.Job.PayTransactionHandler.Core.Services;
+using Lykke.Job.PayTransactionHandler.Services.Extensions;
+using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInternal.Client.Models.Transactions;
 using NBitcoin;
+using QBitNinja.Client;
 using QBitNinja.Client.Models;
-using MoreLinq;
 
 namespace Lykke.Job.PayTransactionHandler.Services.Transactions
 {
-    public class TransactionsScanService : ScanServiceBase<BcnTransaction>
+    public class TransactionsScanService : IScanService
     {
-        private readonly ITransactionStateCacheManager<TransactionState, BcnTransaction> _transactionStateCacheManager;
+        private readonly ICacheMaintainer<TransactionState> _cacheMaintainer;
+        private readonly QBitNinjaClient _qBitNinjaClient;
         private readonly IDiffService<BcnTransaction> _diffService;
+        private readonly IPayInternalClient _payInternalClient;
+        private readonly ILog _log;
 
         public TransactionsScanService(
-            IPayInternalClient payInternalClient,
+            ICacheMaintainer<TransactionState> cacheMaintainer,
             QBitNinjaClient qBitNinjaClient,
-            ITransactionStateCacheManager<TransactionState, BcnTransaction> transactionStateCacheManager,
             IDiffService<BcnTransaction> diffService,
-            ILog log) : base(
-            payInternalClient,
-            qBitNinjaClient,
-            log)
+            IPayInternalClient payInternalClient,
+            ILog log)
         {
-            _transactionStateCacheManager = transactionStateCacheManager ?? throw new ArgumentNullException(nameof(transactionStateCacheManager));
+            _cacheMaintainer = cacheMaintainer ?? throw new ArgumentNullException(nameof(cacheMaintainer));
+            _qBitNinjaClient = qBitNinjaClient ?? throw new ArgumentNullException(nameof(qBitNinjaClient));
             _diffService = diffService ?? throw new ArgumentNullException(nameof(diffService));
+            _payInternalClient = payInternalClient ?? throw new ArgumentNullException(nameof(payInternalClient));
+            _log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
-        public override async Task ExecuteAsync()
+        public async Task ExecuteAsync()
         {
-            //todo: move cleaning out of this service
-            await _transactionStateCacheManager.ClearOutOfDateAsync();
+            IEnumerable<TransactionState> cacheState = await _cacheMaintainer.GetAsync();
 
-            IEnumerable<BcnTransaction> initialTransactions = (await _transactionStateCacheManager.GetStateAsync()).Select(x => x.Transaction).ToList();
-
-            var currentTransactions = (await GetBcnTransactionsAsync(initialTransactions.Select(x => x.Id))).ToList();
-
-            var updatedTransactions = _diffService.Diff(initialTransactions, currentTransactions);
-
-            await BroadcastAsync(updatedTransactions);
-
-            await _transactionStateCacheManager.UpdateTransactionsAsync(currentTransactions);
-        }
-
-        public override Task CreateTransactionAsync(BcnTransaction tx)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override async Task UpdateTransactionAsync(BcnTransaction tx)
-        {
-            //todo: FirstSeen has to be a part of domain model BcnTransaction, also a part of NewTransactionMessage
-            var txDetails = await QBitNinjaClient.GetTransaction(new uint256(tx.Id));
-
-            await PayInternalClient.UpdateTransactionAsync(new UpdateTransactionRequest
+            foreach (TransactionState cacheTxState in cacheState)
             {
-                Amount = tx.Amount,
-                Confirmations = tx.Confirmations,
-                BlockId = tx.BlockId,
-                TransactionId = tx.Id,
-                FirstSeen = txDetails.FirstSeen.DateTime
-            });
-        }
+                BcnTransaction cacheTx = cacheTxState.Transaction;
 
-        public override async Task<IEnumerable<BcnTransaction>> GetBcnTransactionsAsync(IEnumerable<string> transactionIds)
-        {
-            var transactions = new List<GetTransactionResponse>();
+                GetTransactionResponse bcnTransactionState =
+                    await _qBitNinjaClient.GetTransaction(new uint256(cacheTx.Id));
 
-            foreach (var batch in transactionIds.Batch(BatchPieceSize))
-            {
-                await Task.WhenAll(batch.Select(transactionId => QBitNinjaClient
-                    .GetTransaction(new uint256(transactionId))
-                    .ContinueWith(t =>
+                BcnTransaction bcnTx = bcnTransactionState.ToDomain();
+
+                DiffResult<BcnTransaction> diffResult = _diffService.Diff(cacheTx, bcnTx);
+
+                if (diffResult != null)
+                {
+                    var tx = diffResult.Object;
+
+                    switch (diffResult.CompareState)
                     {
-                        lock (transactions)
-                        {
-                            transactions.Add(t.Result);
-                        }
-                    })));
-            }
+                        case DiffState.New:
 
-            return transactions.Select(tx => tx.ToDomain());
+                            await _log.WriteWarningAsync(nameof(TransactionsScanService), nameof(ExecuteAsync),
+                                tx?.ToJson(), "New transactions are not supported by watcher");
+
+                            break;
+
+                        case DiffState.Updated:
+
+                            UpdateTransactionRequest updateRequest = null;
+
+                            try
+                            {
+                                updateRequest = tx.ToUpdateRequest(bcnTransactionState.FirstSeen.DateTime);
+
+                                await _payInternalClient.UpdateTransactionAsync(updateRequest);
+                            }
+                            catch (Exception ex)
+                            {
+                                await _log.WriteErrorAsync(nameof(TransactionsScanService), nameof(ExecuteAsync),
+                                    updateRequest?.ToJson(), ex);
+                            }
+
+                            break;
+
+                        default:
+                            throw new Exception("Unknown transactions diff state");
+                    }
+
+                    cacheTxState.Transaction = bcnTx;
+
+                    await _cacheMaintainer.SetItemAsync(cacheTxState);
+                }
+            }
         }
     }
 }

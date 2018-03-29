@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace Lykke.Job.PayTransactionHandler.Services
+namespace Lykke.Job.PayTransactionHandler.Services.Extensions
 {
     public static class MemoryCacheExtensions
     {

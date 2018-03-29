@@ -18,9 +18,9 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
         private readonly ILog _log;
         private readonly RabbitMqSettings _settings;
         private RabbitMqSubscriber<NewTransactionMessage> _subscriber;
-        private readonly ICache<TransactionState> _transactionsCache;
+        private readonly ICacheMaintainer<TransactionState> _transactionsCache;
 
-        public TransactionEventsSubscriber(ILog log, RabbitMqSettings settings, ICache<TransactionState> transactionsCache)
+        public TransactionEventsSubscriber(ILog log, RabbitMqSettings settings, ICacheMaintainer<TransactionState> transactionsCache)
         {
             _log = log;
             _settings = settings;
@@ -48,7 +48,7 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
         private async Task ProcessMessageAsync(NewTransactionMessage arg)
         {
-            await _transactionsCache.AddAsync(new TransactionState
+            await _transactionsCache.SetItemAsync(new TransactionState
             {
                 Transaction = new BcnTransaction
                 {

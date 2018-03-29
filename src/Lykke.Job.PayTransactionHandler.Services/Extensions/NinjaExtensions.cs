@@ -3,7 +3,7 @@ using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using NBitcoin;
 using QBitNinja.Client.Models;
 
-namespace Lykke.Job.PayTransactionHandler.Services
+namespace Lykke.Job.PayTransactionHandler.Services.Extensions
 {
     public static class NinjaExtensions
     {
@@ -13,8 +13,8 @@ namespace Lykke.Job.PayTransactionHandler.Services
             return new PaymentBcnTransaction
             {
                 WalletAddress = walletAddress,
-                Amount = src.Amount.ToDecimal(MoneyUnit.Satoshi),
-                AssetId = nameof(MoneyUnit.Satoshi),
+                Amount = src.Amount.ToDecimal(MoneyUnit.BTC),
+                AssetId = nameof(MoneyUnit.BTC),
                 Blockchain = bcnType.ToString(),
                 Id = src.TransactionId.ToString(),
                 BlockId = src.BlockId?.ToString(),

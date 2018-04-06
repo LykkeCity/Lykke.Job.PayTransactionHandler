@@ -12,7 +12,7 @@ namespace Lykke.Job.PayTransactionHandler.Core.Domain.Common
         public string AssetId { get; set; }
         public int Confirmations { get; set; }
         public string BlockId { get; set; }
-        public string Blockchain { get; set; }
+        public BlockchainType Blockchain { get; set; }
 
         public bool Equals(BcnTransaction other)
         {
@@ -21,7 +21,7 @@ namespace Lykke.Job.PayTransactionHandler.Core.Domain.Common
 
             return string.Equals(Id, other.Id) && Amount.Equals(other.Amount) &&
                    string.Equals(AssetId, other.AssetId) && Confirmations == other.Confirmations &&
-                   string.Equals(BlockId, other.BlockId) && string.Equals(Blockchain, other.Blockchain);
+                   string.Equals(BlockId, other.BlockId) && Blockchain == other.Blockchain;
         }
 
         public override bool Equals(object obj)

@@ -15,7 +15,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
                 WalletAddress = walletAddress,
                 Amount = src.Amount.ToDecimal(MoneyUnit.BTC),
                 AssetId = nameof(MoneyUnit.BTC),
-                Blockchain = bcnType.ToString(),
+                Blockchain = bcnType,
                 Id = src.TransactionId.ToString(),
                 BlockId = src.BlockId?.ToString(),
                 Confirmations = src.Confirmations

@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lykke.Common" Version="6.0.0" />
+    <PackageReference Include="Lykke.Common" Version="6.1.1" />
     <PackageReference Include="QBitNinja.Client" Version="1.0.3.46" />
   </ItemGroup>
 

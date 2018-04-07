@@ -96,7 +96,8 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
                 Amount = src.Amount,
                 Confirmations = src.Confirmations,
                 BlockId = src.BlockId,
-                TransactionId = src.Id
+                TransactionId = src.Id,
+                Blockchain = Enum.Parse<Service.PayInternal.Client.Models.BlockchainType>(src.Blockchain.ToString())
             };
         }
 
@@ -122,7 +123,8 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
                 Confirmations = src.Confirmations,
                 FirstSeen = firstSeen,
                 TransactionId = src.Id,
-                Amount = src.Amount
+                Amount = src.Amount,
+                Blockchain = Enum.Parse<Service.PayInternal.Client.Models.BlockchainType>(src.Blockchain.ToString())
             };
         }
     }

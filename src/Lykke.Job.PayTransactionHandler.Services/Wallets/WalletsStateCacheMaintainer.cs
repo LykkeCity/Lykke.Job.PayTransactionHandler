@@ -9,7 +9,6 @@ using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInternal.Client.Models.Wallets;
 using Lykke.Job.PayTransactionHandler.Services.Extensions;
 using Microsoft.Extensions.Caching.Memory;
-using BlockchainType = Lykke.Job.PayTransactionHandler.Core.BlockchainType;
 
 namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 {
@@ -50,12 +49,11 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
             foreach (var walletState in cached.Where(x => x.DueDate <= DateTime.UtcNow))
             {
-                BlockchainType blockchain = walletState.Transactions.Select(x => x.Blockchain).Single();
-
                 await _payInternalClient.SetWalletExpiredAsync(new BlockchainWalletExpiredRequest
                 {
                     WalletAddress = walletState.Address,
-                    Blockchain = Enum.Parse<Service.PayInternal.Client.Models.BlockchainType>(blockchain.ToString())
+                    Blockchain =
+                        Enum.Parse<Service.PayInternal.Client.Models.BlockchainType>(walletState.Blockchain.ToString()),
                 });
 
                 await _cache.RemoveWithPartitionAsync(CachePartitionName, walletState.Address);
@@ -69,7 +67,8 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
         {
             await _cache.SetWithPartitionAsync(CachePartitionName, item.Address, item);
 
-            await _log.WriteInfoAsync(nameof(WalletsStateCacheMaintainer), nameof(SetItemAsync), $"Updated wallet {item.Address} in cache");
+            await _log.WriteInfoAsync(nameof(WalletsStateCacheMaintainer), nameof(SetItemAsync),
+                $"Updated wallet {item.Address} in cache");
         }
 
         public async Task<IEnumerable<WalletState>> GetAsync()

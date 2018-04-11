@@ -18,6 +18,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
             return new WalletState
             {
                 Address = src.Address,
+                Blockchain = Enum.Parse<BlockchainType>(src.Blockchain.ToString()),
                 DueDate = src.DueDate,
                 Transactions = src.Transactions.Select(x => x.ToDomain())
             };

@@ -11,6 +11,7 @@ using Lykke.Job.PayTransactionHandler.Core.Settings.JobSettings;
 using Lykke.RabbitMqBroker;
 using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.Service.PayInternal.Contract;
+using BlockchainType = Lykke.Job.PayTransactionHandler.Core.BlockchainType;
 
 namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 {
@@ -53,6 +54,7 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
             {
                 Address = arg.Address,
                 DueDate = arg.DueDate,
+                Blockchain = Enum.Parse<BlockchainType>(arg.Blockchain.ToString()),
                 Transactions = Enumerable.Empty<PaymentBcnTransaction>()
             });
         }

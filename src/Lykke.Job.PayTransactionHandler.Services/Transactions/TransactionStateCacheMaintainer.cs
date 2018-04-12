@@ -10,6 +10,7 @@ using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInternal.Client.Models.Transactions;
 using Lykke.Service.PayInternal.Client.Models.Wallets;
 using Lykke.Job.PayTransactionHandler.Services.Extensions;
+using Lykke.Service.PayInternal.Client.Models;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Lykke.Job.PayTransactionHandler.Services.Transactions
@@ -62,7 +63,8 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
                 {
                     await _payInternalClient.SetTransactionExpiredAsync(new TransactionExpiredRequest
                     {
-                        TransactionId = txState.Transaction.Id
+                        TransactionId = txState.Transaction.Id,
+                        Blockchain = Enum.Parse<BlockchainType>(txState.Transaction.Blockchain.ToString())
                     });
 
                     await _log.WriteInfoAsync(nameof(TransactionStateCacheMaintainer), nameof(WipeAsync),

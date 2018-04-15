@@ -18,6 +18,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
             return new WalletState
             {
                 Address = src.Address,
+                Blockchain = Enum.Parse<BlockchainType>(src.Blockchain.ToString()),
                 DueDate = src.DueDate,
                 Transactions = src.Transactions.Select(x => x.ToDomain())
             };
@@ -32,7 +33,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
                 BlockId = src.BlockId,
                 Confirmations = src.Confirmations,
                 WalletAddress = src.WalletAddress,
-                Blockchain = src.Blockchain,
+                Blockchain = Enum.Parse<BlockchainType>(src.Blockchain.ToString()),
                 AssetId = src.AssetId
             };
         }
@@ -45,7 +46,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
                 Amount = (decimal) src.Amount,
                 Confirmations = src.Confirmations,
                 BlockId = src.BlockId,
-                Blockchain = src.Blockchain,
+                Blockchain = Enum.Parse<BlockchainType>(src.Blockchain.ToString()),
                 AssetId = src.AssetId
             };
         }
@@ -67,7 +68,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
                 Amount = src.SpentCoins.Sum(x => x.TxOut.Value.ToDecimal(MoneyUnit.BTC)),
                 Confirmations = src.Block?.Confirmations ?? 0,
                 BlockId = src.Block?.BlockId?.ToString(),
-                Blockchain = BlockchainType.Bitcoin.ToString(),
+                Blockchain = BlockchainType.Bitcoin,
                 AssetId = nameof(MoneyUnit.BTC)
             };
         }
@@ -82,7 +83,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
                 BlockId = src.BlockId,
                 FirstSeen = txDetails.FirstSeen.DateTime,
                 TransactionId = src.Id,
-                Blockchain = src.Blockchain,
+                Blockchain = Enum.Parse<Service.PayInternal.Client.Models.BlockchainType>(src.Blockchain.ToString()),
                 AssetId = src.AssetId,
                 SourceWalletAddresses = txDetails.GetSourceWalletAddresses(network).Select(x => x.ToString()).ToArray()
             };
@@ -96,7 +97,8 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
                 Amount = src.Amount,
                 Confirmations = src.Confirmations,
                 BlockId = src.BlockId,
-                TransactionId = src.Id
+                TransactionId = src.Id,
+                Blockchain = Enum.Parse<Service.PayInternal.Client.Models.BlockchainType>(src.Blockchain.ToString())
             };
         }
 
@@ -109,7 +111,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
                 BlockId = src.BlockId,
                 FirstSeen = firstSeen,
                 AssetId = src.AssetId,
-                Blockchain = src.Blockchain,
+                Blockchain = Enum.Parse<Service.PayInternal.Client.Models.BlockchainType>(src.Blockchain.ToString()),
                 TransactionId = src.Id
             };
         }
@@ -122,7 +124,8 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
                 Confirmations = src.Confirmations,
                 FirstSeen = firstSeen,
                 TransactionId = src.Id,
-                Amount = src.Amount
+                Amount = src.Amount,
+                Blockchain = Enum.Parse<Service.PayInternal.Client.Models.BlockchainType>(src.Blockchain.ToString())
             };
         }
     }

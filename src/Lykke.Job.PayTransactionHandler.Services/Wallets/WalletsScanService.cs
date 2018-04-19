@@ -39,7 +39,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
             _diffService = diffService ?? throw new ArgumentNullException(nameof(diffService));
             _payInternalClient = payInternalClient ?? throw new ArgumentNullException(nameof(payInternalClient));
             _bitcoinNetwork = Network.GetNetwork(bitcoinNetwork);
-            _log = log ?? throw new ArgumentNullException(nameof(log));
+            _log = log?.CreateComponentScope(nameof(WalletsScanService)) ?? throw new ArgumentNullException(nameof(log));
         }
 
         public async Task ExecuteAsync()
@@ -48,7 +48,18 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
             foreach (var walletState in cacheState)
             {
-                BalanceModel balance = await _qBitNinjaClient.GetBalance(BitcoinAddress.Create(walletState.Address));
+                BalanceModel balance;
+
+                try
+                {
+                    balance = await _qBitNinjaClient.GetBalance(BitcoinAddress.Create(walletState.Address));
+                }
+                catch (Exception ex)
+                {
+                    await _log.WriteErrorAsync("Getting balance from ninja", walletState?.ToJson(), ex);
+
+                    continue;
+                }
 
                 IEnumerable<PaymentBcnTransaction> bcnTransactions = balance?.Operations?
                     .Where(o => o.ReceivedCoins.Any(coin => coin.GetDestinationAddress(_bitcoinNetwork).ToString().Equals(walletState.Address)))
@@ -78,8 +89,9 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                             }
                             catch (Exception ex)
                             {
-                                await _log.WriteErrorAsync(nameof(WalletsScanService), nameof(ExecuteAsync),
-                                    createRequest?.ToJson(), ex);
+                                await _log.WriteErrorAsync(nameof(ExecuteAsync), createRequest?.ToJson(), ex);
+
+                                continue;
                             }
 
                             break;
@@ -96,8 +108,9 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                             }
                             catch (Exception ex)
                             {
-                                await _log.WriteErrorAsync(nameof(WalletsScanService), nameof(ExecuteAsync),
-                                    updateRequest?.ToJson(), ex);
+                                await _log.WriteErrorAsync(nameof(ExecuteAsync), updateRequest?.ToJson(), ex);
+
+                                continue;
                             }
 
                             break;

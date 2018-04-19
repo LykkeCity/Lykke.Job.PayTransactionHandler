@@ -64,10 +64,10 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
         {
             return new BcnTransaction
             {
-                Id = src.TransactionId.ToString(),
-                Amount = src.SpentCoins.Sum(x => x.TxOut.Value.ToDecimal(MoneyUnit.BTC)),
-                Confirmations = src.Block?.Confirmations ?? 0,
-                BlockId = src.Block?.BlockId?.ToString(),
+                Id = src?.TransactionId?.ToString(),
+                Amount = src?.SpentCoins?.Sum(x => x?.TxOut?.Value?.ToDecimal(MoneyUnit.BTC) ?? 0) ?? 0,
+                Confirmations = src?.Block?.Confirmations ?? 0,
+                BlockId = src?.Block?.BlockId?.ToString(),
                 Blockchain = BlockchainType.Bitcoin,
                 AssetId = nameof(MoneyUnit.BTC)
             };

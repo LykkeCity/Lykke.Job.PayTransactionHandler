@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Common.Log;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.DiffService;
 using Lykke.Job.PayTransactionHandler.Core.Services;
@@ -15,12 +13,10 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
     public class TxStateDiffService : IDiffService<BcnTransaction>
     {
         private readonly int _confirmationsLimit;
-        private readonly ILog _log;
 
-        public TxStateDiffService(int confirmationsLimit, ILog log)
+        public TxStateDiffService(int confirmationsLimit)
         {
             _confirmationsLimit = confirmationsLimit;
-            _log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
         public IEnumerable<DiffResult<BcnTransaction>> Diff(IEnumerable<BcnTransaction> initialState, IEnumerable<BcnTransaction> updatedState)
@@ -49,35 +45,15 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
 
         private DiffResult<BcnTransaction> DiffSingleTransaction(BcnTransaction initialTx, BcnTransaction updatedTx)
         {
-            _log.WriteInfoAsync(nameof(TxStateDiffService), nameof(DiffSingleTransaction),
-                $"Diffing transaction {updatedTx.Id}. Confirmations: {updatedTx.Confirmations}");
-
             if (initialTx?.Confirmations >= _confirmationsLimit)
             {
-                _log.WriteInfoAsync(nameof(TxStateDiffService), nameof(DiffSingleTransaction),
-                    $"Confirmations limit reached ({_confirmationsLimit}), will skip transaction");
-
                 return null;
             }
 
             var isNew = initialTx == null;
 
-            if (isNew)
-            {
-                _log.WriteInfoAsync(nameof(TxStateDiffService), nameof(DiffSingleTransaction),
-                    $"Found new transaction: {updatedTx.Id}");
-            }
-            else
-            {
-                _log.WriteInfoAsync(nameof(TxStateDiffService), nameof(DiffSingleTransaction),
-                    $"Not new transaction. Will try to compare");
-            }
-
             if (!updatedTx.Equals(initialTx))
             {
-                _log.WriteInfoAsync(nameof(TxStateDiffService), nameof(DiffSingleTransaction),
-                    $"Transaction {updatedTx.Id} has changes.");
-
                 return new DiffResult<BcnTransaction>
                 {
                     CompareState = isNew ? DiffState.New : DiffState.Updated,

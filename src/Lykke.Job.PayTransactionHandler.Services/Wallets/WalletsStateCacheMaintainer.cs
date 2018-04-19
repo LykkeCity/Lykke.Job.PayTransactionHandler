@@ -66,9 +66,6 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
         public async Task SetItemAsync(WalletState item)
         {
             await _cache.SetWithPartitionAsync(CachePartitionName, item.Address, item);
-
-            await _log.WriteInfoAsync(nameof(WalletsStateCacheMaintainer), nameof(SetItemAsync),
-                $"Updated wallet {item.Address} in cache");
         }
 
         public async Task<IEnumerable<WalletState>> GetAsync()

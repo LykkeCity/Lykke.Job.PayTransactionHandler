@@ -81,9 +81,6 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
         public async Task SetItemAsync(TransactionState item)
         {
             await _cache.SetWithPartitionAsync(CachePartitionName, item.Transaction.Id, item);
-
-            await _log.WriteInfoAsync(nameof(TransactionStateCacheMaintainer), nameof(SetItemAsync),
-                $"Updated transaction {item.Transaction.Id} in cache");
         }
 
         public async Task<IEnumerable<TransactionState>> GetAsync()

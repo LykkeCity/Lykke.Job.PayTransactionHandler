@@ -63,8 +63,9 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
                 {
                     await _payInternalClient.SetTransactionExpiredAsync(new TransactionExpiredRequest
                     {
-                        TransactionId = txState.Transaction.Id,
-                        Blockchain = Enum.Parse<BlockchainType>(txState.Transaction.Blockchain.ToString())
+                        Blockchain = Enum.Parse<BlockchainType>(txState.Transaction.Blockchain.ToString()),
+                        IdentityType = TransactionIdentityType.Hash,
+                        Identity = txState.Transaction.Id
                     });
 
                     await _log.WriteInfoAsync(nameof(TransactionStateCacheMaintainer), nameof(WipeAsync),

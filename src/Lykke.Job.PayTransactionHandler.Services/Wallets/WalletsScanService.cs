@@ -54,10 +54,14 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                 {
                     balance = await _qBitNinjaClient.GetBalance(BitcoinAddress.Create(walletState.Address));
 
+                    //todo: remove logging
                     await _log.WriteInfoAsync(nameof(ExecuteAsync), new
                     {
                         walletState,
-                        balance
+                        ninjaOperations = balance?.Operations?
+                            .Where(o => o.ReceivedCoins.Any(coin =>
+                                coin.GetDestinationAddress(_bitcoinNetwork).ToString().Equals(walletState.Address)))
+                            .Select(x => x.ToDomainPaymentTransaction(walletState.Address))
                     }.ToJson(), "Getting balance for wallet");
 
                 }

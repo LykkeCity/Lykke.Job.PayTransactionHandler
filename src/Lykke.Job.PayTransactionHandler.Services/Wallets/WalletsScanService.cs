@@ -53,6 +53,13 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                 try
                 {
                     balance = await _qBitNinjaClient.GetBalance(BitcoinAddress.Create(walletState.Address));
+
+                    await _log.WriteInfoAsync(nameof(ExecuteAsync), new
+                    {
+                        walletState,
+                        balance
+                    }.ToJson(), "Getting balance for wallet");
+
                 }
                 catch (Exception ex)
                 {

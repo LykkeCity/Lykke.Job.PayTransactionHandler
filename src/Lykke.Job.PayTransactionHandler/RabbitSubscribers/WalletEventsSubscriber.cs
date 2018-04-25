@@ -50,6 +50,9 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
         private async Task ProcessMessageAsync(NewWalletMessage arg)
         {
+            await _log.WriteInfoAsync(nameof(WalletEventsSubscriber), nameof(ProcessMessageAsync), arg.ToJson(),
+                "Got a message about new wallet");
+
             await _walletsCache.SetItemAsync(new WalletState
             {
                 Address = arg.Address,

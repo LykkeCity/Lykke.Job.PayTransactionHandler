@@ -57,12 +57,17 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                     //todo: remove logging
                     await _log.WriteInfoAsync(nameof(ExecuteAsync), new
                     {
+                        walletState.Blockchain,
+                        walletState.Address,
+                        walletState.DueDate
+                    }.ToJson(), new
+                    {
                         walletState,
                         ninjaOperations = balance?.Operations?
                             .Where(o => o.ReceivedCoins.Any(coin =>
                                 coin.GetDestinationAddress(_bitcoinNetwork).ToString().Equals(walletState.Address)))
                             .Select(x => x.ToDomainPaymentTransaction(walletState.Address))
-                    }.ToJson(), "Getting balance for wallet");
+                    }.ToJson());
                 }
                 catch (Exception ex)
                 {
@@ -95,6 +100,12 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
                                 createRequest = tx.ToCreateRequest(txDetails, _bitcoinNetwork);
 
+                                await _log.WriteInfoAsync(nameof(ExecuteAsync), new
+                                {
+                                    Hash = tx.Id,
+                                    txDetails.FirstSeen
+                                }.ToJson(), "New transaction detected");
+
                                 await _payInternalClient.CreatePaymentTransactionAsync(createRequest);
                             }
                             catch (Exception ex)
@@ -113,6 +124,15 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                             try
                             {
                                 updateRequest = tx.ToUpdateRequest();
+
+                                await _log.WriteInfoAsync(nameof(ExecuteAsync), new
+                                {
+                                    Hash = tx.Id,
+                                    tx.WalletAddress,
+                                    tx.Blockchain,
+                                    tx.Amount,
+                                    tx.Confirmations
+                                }.ToJson(), "Transaction update detected");
 
                                 await _payInternalClient.UpdateTransactionAsync(updateRequest);
                             }

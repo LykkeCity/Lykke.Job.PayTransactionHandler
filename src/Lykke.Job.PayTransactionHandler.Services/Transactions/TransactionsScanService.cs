@@ -49,6 +49,9 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
                 GetTransactionResponse bcnTransactionState =
                     await _qBitNinjaClient.GetTransaction(new uint256(cacheTx.Id));
 
+                // if transaction has not been indexed by ninja yet
+                if (bcnTransactionState == null) continue;
+
                 BcnTransaction bcnTx = bcnTransactionState.ToDomain();
 
                 DiffResult<BcnTransaction> diffResult = _diffService.Diff(cacheTx, bcnTx);

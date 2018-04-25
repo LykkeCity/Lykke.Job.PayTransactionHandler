@@ -121,7 +121,16 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
                 walletState.Transactions = bcnTransactions;
 
-                await _cacheMaintainer.SetItemAsync(walletState);
+                try
+                {
+                    await _cacheMaintainer.SetItemAsync(walletState);
+                }
+                catch (Exception ex)
+                {
+                    await _log.WriteErrorAsync("Updating wallets cache", walletState.ToJson(), ex);
+
+                    continue;
+                }
             }
         }
     }

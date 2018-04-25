@@ -49,6 +49,9 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
         private async Task ProcessMessageAsync(NewTransactionMessage arg)
         {
+            await _log.WriteInfoAsync(nameof(TransactionEventsSubscriber), nameof(ProcessMessageAsync), arg.ToJson(),
+                "Got a message about new transaction");
+
             await _transactionsCache.SetItemAsync(new TransactionState
             {
                 Transaction = new BcnTransaction

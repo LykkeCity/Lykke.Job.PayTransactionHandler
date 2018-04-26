@@ -16,8 +16,10 @@ using Microsoft.Extensions.DependencyInjection;
 using QBitNinja.Client;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
+using Lykke.Job.PayTransactionHandler.Services.Ethereum;
 using Lykke.Job.PayTransactionHandler.Services.Transactions;
 using Lykke.Job.PayTransactionHandler.Services.Wallets;
+using Lykke.Service.Assets.Client;
 
 namespace Lykke.Job.PayTransactionHandler.Modules
 {
@@ -100,6 +102,12 @@ namespace Lykke.Job.PayTransactionHandler.Modules
                 .AutoActivate()
                 .SingleInstance()
                 .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.Rabbit));
+
+            builder.RegisterType<EthereumEventsSubscriber>()
+                .As<IStartable>()
+                .AutoActivate()
+                .SingleInstance()
+                .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.Rabbit));
         }
 
         private void RegisterServiceClients(ContainerBuilder builder)
@@ -110,6 +118,9 @@ namespace Lykke.Job.PayTransactionHandler.Modules
 
             builder.RegisterInstance(new QBitNinjaClient(_settings.NinjaServiceClient.ServiceUrl))
                 .AsSelf();
+
+            builder.RegisterInstance<IAssetsService>(
+                new AssetsService(new Uri(_settings.AssetsServiceClient.ServiceUrl)));
         }
 
         private void RegisterDomainServices(ContainerBuilder builder)
@@ -147,6 +158,11 @@ namespace Lykke.Job.PayTransactionHandler.Modules
                     TypedParameter.From(_settings.PayTransactionHandlerJob.Blockchain.ConfirmationsToSucceed))
                 .As<IDiffService<BcnTransaction>>()
                 .SingleInstance();
+
+            builder.RegisterType<EthereumTransferHandler>()
+                .WithParameter(
+                    TypedParameter.From(_settings.PayTransactionHandlerJob.Blockchain.ConfirmationsToSucceed))
+                .As<IEthereumTransferHandler>();
         }
     }
 }

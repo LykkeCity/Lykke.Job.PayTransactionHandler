@@ -21,8 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="6.2.2" />
     <PackageReference Include="Lykke.Common" Version="6.1.1" />
     <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.4.0" />
+    <PackageReference Include="Lykke.Job.EthereumCore.Contracts" Version="1.1.2" />
     <!-- #if azurequeuesub -->
     <PackageReference Include="Lykke.JobTriggers" Version="1.2.0" />
     <!-- #endif -->
@@ -32,6 +34,7 @@
     <!-- #endif -->
     <!-- #if rabbitpub || rabbitsub -->
     <PackageReference Include="Lykke.RabbitMqBroker" Version="7.0.0" />
+    <PackageReference Include="Lykke.Service.Assets.Client" Version="3.3.2" />
     <PackageReference Include="Lykke.Service.PayInternal.Contract" Version="1.0.26" />
     <!-- #endif -->
     <PackageReference Include="Lykke.SettingsReader" Version="2.1.0" />

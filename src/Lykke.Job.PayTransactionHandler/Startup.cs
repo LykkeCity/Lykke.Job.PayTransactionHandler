@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using AutoMapper;
 using AzureStorage.Tables;
 using Common.Log;
 using Lykke.Common.Api.Contract.Responses;
@@ -61,6 +62,13 @@ namespace Lykke.Job.PayTransactionHandler
                 builder.RegisterModule(new JobModule(appSettings.CurrentValue, appSettings.Nested(x => x.PayTransactionHandlerJob.Db), Log));
 
                 builder.Populate(services);
+
+                Mapper.Initialize(cfg =>
+                {
+                    cfg.AddProfile<AutoMapperProfile>();
+                });
+
+                Mapper.AssertConfigurationIsValid();
 
                 ApplicationContainer = builder.Build();
 

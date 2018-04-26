@@ -11,11 +11,18 @@ namespace Lykke.Job.PayTransactionHandler.Core.Settings
         public SlackNotificationsSettings SlackNotifications { get; set; }
         public PayInternalServiceClientSettings PayInternalServiceClient { get; set; }
         public NinjaServiceClientSettings NinjaServiceClient { get; set; }
+        public AssetsServiceClientSettings AssetsServiceClient { get; set; }
     }
 
     public class NinjaServiceClientSettings
     {
         [HttpCheck("/")]
+        public string ServiceUrl { get; set; }
+    }
+
+    public class AssetsServiceClientSettings
+    {
+        [HttpCheck("api/isalive")]
         public string ServiceUrl { get; set; }
     }
 }

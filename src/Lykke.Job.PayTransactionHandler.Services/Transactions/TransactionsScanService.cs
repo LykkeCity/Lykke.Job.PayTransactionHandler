@@ -35,7 +35,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             _qBitNinjaClient = qBitNinjaClient ?? throw new ArgumentNullException(nameof(qBitNinjaClient));
             _diffService = diffService ?? throw new ArgumentNullException(nameof(diffService));
             _payInternalClient = payInternalClient ?? throw new ArgumentNullException(nameof(payInternalClient));
-            _log = log ?? throw new ArgumentNullException(nameof(log));
+            _log = log?.CreateComponentScope(nameof(TransactionsScanService)) ?? throw new ArgumentNullException(nameof(log));
         }
 
         public async Task ExecuteAsync()
@@ -46,8 +46,21 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             {
                 BcnTransaction cacheTx = cacheTxState.Transaction;
 
-                GetTransactionResponse bcnTransactionState =
-                    await _qBitNinjaClient.GetTransaction(new uint256(cacheTx.Id));
+                GetTransactionResponse bcnTransactionState;
+
+                try
+                {
+                    bcnTransactionState = await _qBitNinjaClient.GetTransaction(new uint256(cacheTx.Id));
+                }
+                catch (Exception ex)
+                {
+                    await _log.WriteErrorAsync("Getting transaction from ninja", cacheTxState.ToJson(), ex);
+
+                    continue;
+                }
+
+                // if transaction has not been indexed by ninja yet
+                if (bcnTransactionState == null) continue;
 
                 BcnTransaction bcnTx = bcnTransactionState.ToDomain();
 
@@ -90,7 +103,17 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
 
                     cacheTxState.Transaction = bcnTx;
 
-                    await _cacheMaintainer.SetItemAsync(cacheTxState);
+                    try
+                    {
+                        await _cacheMaintainer.SetItemAsync(cacheTxState);
+                    }
+                    catch (Exception ex)
+                    {
+
+                        await _log.WriteErrorAsync("Updating transaction cache", cacheTxState.ToJson(), ex);
+
+                        continue;
+                    }
                 }
             }
         }

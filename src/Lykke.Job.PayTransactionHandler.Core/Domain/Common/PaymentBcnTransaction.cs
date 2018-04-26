@@ -1,4 +1,6 @@
 ﻿using System;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Lykke.Job.PayTransactionHandler.Core.Domain.Common
 {
@@ -14,6 +16,7 @@ namespace Lykke.Job.PayTransactionHandler.Core.Domain.Common
         public string AssetId { get; set; }
         public int Confirmations { get; set; }
         public string BlockId { get; set; }
+        [JsonConverter(typeof(StringEnumConverter))]
         public BlockchainType Blockchain { get; set; }
 
         public bool Equals(PaymentBcnTransaction other)

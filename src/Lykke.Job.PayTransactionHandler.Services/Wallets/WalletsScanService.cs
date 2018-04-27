@@ -18,6 +18,9 @@ using QBitNinja.Client.Models;
 
 namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 {
+    /// <summary>
+    /// Scans bitcoin blockchain for only payment transactions (incoming payments)
+    /// </summary>
     public class WalletsScanService : IScanService
     {
         private readonly ICacheMaintainer<WalletState> _cacheMaintainer;
@@ -67,10 +70,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                     }.ToJson(), new
                     {
                         walletState,
-                        ninjaOperations = balance?.Operations?
-                            .Where(o => o.ReceivedCoins.Any(coin =>
-                                coin.GetDestinationAddress(_bitcoinNetwork).ToString().Equals(walletState.Address)))
-                            .Select(x => x.ToDomainPaymentTransaction(walletState.Address))
+                        ninjaOperations = GetIncomingPaymentOperations(balance, walletState.Address)
                     }.ToJson());
                 }
                 catch (Exception ex)
@@ -80,9 +80,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                     continue;
                 }
 
-                IEnumerable<PaymentBcnTransaction> bcnTransactions = balance?.Operations?
-                    .Where(o => o.ReceivedCoins.Any(coin => coin.GetDestinationAddress(_bitcoinNetwork).ToString().Equals(walletState.Address)))
-                    .Select(x => x.ToDomainPaymentTransaction(walletState.Address)).ToList();
+                IEnumerable<PaymentBcnTransaction> bcnTransactions = GetIncomingPaymentOperations(balance, walletState.Address).ToList();
 
                 IEnumerable<PaymentBcnTransaction> cacheTransactions = walletState.Transactions;
 
@@ -166,6 +164,15 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                     continue;
                 }
             }
+        }
+
+        private IEnumerable<PaymentBcnTransaction> GetIncomingPaymentOperations(BalanceModel balance, string walletAddress)
+        {
+            return balance?.Operations?
+                .Where(o => o.ReceivedCoins.Any(coin =>
+                                coin.GetDestinationAddress(_bitcoinNetwork).ToString().Equals(walletAddress)) &&
+                            o.Amount.ToDecimal(MoneyUnit.BTC) > 0)
+                .Select(x => x.ToDomainPaymentTransaction(walletAddress));
         }
     }
 }

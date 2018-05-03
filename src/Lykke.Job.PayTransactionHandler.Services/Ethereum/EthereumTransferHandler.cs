@@ -44,6 +44,9 @@ namespace Lykke.Job.PayTransactionHandler.Services.Ethereum
 
             Asset asset = await _assetsService.AssetGetAsync(token.AssetId);
 
+            if (asset == null)
+                throw new UnknownErc20AssetException(token.AssetId);
+
             switch (transferEvent.SenderType)
             {
                 // successful payment transaction
@@ -52,10 +55,10 @@ namespace Lykke.Job.PayTransactionHandler.Services.Ethereum
                     var createTransactionRequest = Mapper.Map<CreateTransactionRequest>(
                         transferEvent, opt =>
                         {
-                            opt.Items["AssetId"] = token.AssetId;
+                            opt.Items["AssetId"] = asset.Name;
                             opt.Items["ConfirmationsToSucceed"] = _confirmationsToSucceed;
-                            opt.Items["AssetMultiplier"] = asset?.MultiplierPower ?? 0;
-                            opt.Items["AssetAccuracy"] = asset?.Accuracy ?? 0;
+                            opt.Items["AssetMultiplier"] = asset.MultiplierPower;
+                            opt.Items["AssetAccuracy"] = asset.Accuracy;
                         });
 
                     await _payInternalClient.CreatePaymentTransactionAsync(createTransactionRequest);
@@ -69,8 +72,8 @@ namespace Lykke.Job.PayTransactionHandler.Services.Ethereum
                         opt =>
                         {
                             opt.Items["ConfirmationsToSucceed"] = _confirmationsToSucceed;
-                            opt.Items["AssetMultiplier"] = asset?.MultiplierPower ?? 0;
-                            opt.Items["AssetAccuracy"] = asset?.Accuracy ?? 0;
+                            opt.Items["AssetMultiplier"] = asset.MultiplierPower;
+                            opt.Items["AssetAccuracy"] = asset.Accuracy;
                         });
 
                     await _payInternalClient.UpdateTransactionAsync(updateTransactionRequest);

@@ -67,6 +67,13 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
                 throw;
             }
+            catch (UnknownErc20AssetException assetEx)
+            {
+                await _log.WriteErrorAsync(nameof(ProcessMessageAsync),
+                    new {assetEx.Asset}.ToJson(), assetEx);
+
+                throw;
+            }
             catch (UnexpectedEthereumTransferType typeEx)
             {
                 await _log.WriteErrorAsync(nameof(ProcessMessageAsync),

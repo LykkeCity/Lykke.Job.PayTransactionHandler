@@ -13,7 +13,10 @@ namespace Lykke.Job.PayTransactionHandler
         {
             CreateMap<TransferEvent, CreateTransactionRequest>(MemberList.Destination)
                 .ForMember(dest => dest.WalletAddress, opt => opt.MapFrom(src => src.ToAddress))
-                .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => Convert.ToDecimal(src.Amount)))
+                .ForMember(dest => dest.Amount,
+                    opt => opt.ResolveUsing((src, dest, destMember, resContext) =>
+                        dest.Amount = src.Amount.ToAmount((int) resContext.Items["AssetMultiplier"],
+                            (int) resContext.Items["AssetAccuracy"])))
                 .ForMember(dest => dest.FirstSeen, opt => opt.MapFrom(src => src.DetectedTime))
                 .ForMember(dest => dest.BlockId, opt => opt.MapFrom(src => src.BlockHash))
                 .ForMember(dest => dest.AssetId,
@@ -30,7 +33,10 @@ namespace Lykke.Job.PayTransactionHandler
 
             CreateMap<TransferEvent, UpdateTransactionRequest>(MemberList.Destination)
                 .ForMember(dest => dest.WalletAddress, opt => opt.MapFrom(src => src.FromAddress))
-                .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => Convert.ToDecimal(src.Amount)))
+                .ForMember(dest => dest.Amount,
+                    opt => opt.ResolveUsing((src, dest, destMember, resContext) =>
+                        dest.Amount = src.Amount.ToAmount((int) resContext.Items["AssetMultiplier"],
+                            (int) resContext.Items["AssetAccuracy"])))
                 .ForMember(dest => dest.FirstSeen, opt => opt.MapFrom(src => src.DetectedTime))
                 .ForMember(dest => dest.BlockId, opt => opt.MapFrom(src => src.BlockHash))
                 .ForMember(dest => dest.Blockchain, opt => opt.UseValue(BlockchainType.Ethereum))
@@ -38,10 +44,8 @@ namespace Lykke.Job.PayTransactionHandler
                 .ForMember(dest => dest.IdentityType, opt => opt.UseValue(TransactionIdentityType.Specific))
                 .ForMember(dest => dest.Identity, opt => opt.MapFrom(src => src.OperationId))
                 .ForMember(dest => dest.Confirmations,
-                    opt => opt.ResolveUsing((src, dest, destMember, resContext) =>
-                        dest.Confirmations = src.EventType == EventType.Completed
-                            ? (int) resContext.Items["ConfirmationsToSucceed"]
-                            : 0));
+                    opt => opt.ResolveUsing((src, dest, destMember, resContext) => dest.Confirmations =
+                        src.EventType == EventType.Completed ? (int) resContext.Items["ConfirmationsToSucceed"] : 0));
         }
     }
 }

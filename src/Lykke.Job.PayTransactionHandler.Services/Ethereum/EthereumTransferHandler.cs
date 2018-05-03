@@ -37,21 +37,25 @@ namespace Lykke.Job.PayTransactionHandler.Services.Ethereum
         {
             if (transferEvent == null) return;
 
+            Erc20Token token = await _assetsService.Erc20TokenGetByAddressAsync(transferEvent.TokenAddress);
+
+            if (token == null)
+                throw new UnknownErc20TokenException(transferEvent.TokenAddress);
+
+            Asset asset = await _assetsService.AssetGetAsync(token.AssetId);
+
             switch (transferEvent.SenderType)
             {
                 // successful payment transaction
                 case SenderType.Customer:
-
-                    Erc20Token token = await _assetsService.Erc20TokenGetByAddressAsync(transferEvent.TokenAddress);
-
-                    if (token == null)
-                        throw new UnknownErc20TokenException(transferEvent.TokenAddress);
 
                     var createTransactionRequest = Mapper.Map<CreateTransactionRequest>(
                         transferEvent, opt =>
                         {
                             opt.Items["AssetId"] = token.AssetId;
                             opt.Items["ConfirmationsToSucceed"] = _confirmationsToSucceed;
+                            opt.Items["AssetMultiplier"] = asset?.MultiplierPower ?? 0;
+                            opt.Items["AssetAccuracy"] = asset?.Accuracy ?? 0;
                         });
 
                     await _payInternalClient.CreatePaymentTransactionAsync(createTransactionRequest);
@@ -62,7 +66,12 @@ namespace Lykke.Job.PayTransactionHandler.Services.Ethereum
                 case SenderType.EthereumCore:
 
                     var updateTransactionRequest = Mapper.Map<UpdateTransactionRequest>(transferEvent,
-                        opt => opt.Items["ConfirmationsToSucceed"] = _confirmationsToSucceed);
+                        opt =>
+                        {
+                            opt.Items["ConfirmationsToSucceed"] = _confirmationsToSucceed;
+                            opt.Items["AssetMultiplier"] = asset?.MultiplierPower ?? 0;
+                            opt.Items["AssetAccuracy"] = asset?.Accuracy ?? 0;
+                        });
 
                     await _payInternalClient.UpdateTransactionAsync(updateTransactionRequest);
 

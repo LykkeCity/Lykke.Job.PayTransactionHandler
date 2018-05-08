@@ -82,7 +82,7 @@ namespace Lykke.Job.PayTransactionHandler.Modules
 
             builder.RegisterType<CacheOutdateHandler>()
                 .As<IStartable>()
-                .WithParameter(TypedParameter.From(TimeSpan.FromMinutes(1)))
+                .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.CacheExpirationHandlingPeriod))
                 .AutoActivate()
                 .SingleInstance();
         }

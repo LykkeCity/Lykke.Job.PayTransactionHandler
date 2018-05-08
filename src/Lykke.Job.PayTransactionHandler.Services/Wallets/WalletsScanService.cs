@@ -64,7 +64,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                     //todo: remove logging
                     await _log.WriteInfoAsync(nameof(ExecuteAsync), new
                     {
-                        walletState.Blockchain,
+                        Blockchain = walletState.Blockchain.ToString(),
                         walletState.Address,
                         walletState.DueDate
                     }.ToJson(), new
@@ -131,7 +131,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                                 {
                                     Hash = tx.Id,
                                     tx.WalletAddress,
-                                    tx.Blockchain,
+                                    Blockchain = tx.Blockchain.ToString(),
                                     tx.Amount,
                                     tx.Confirmations
                                 }.ToJson(), "Transaction update detected");

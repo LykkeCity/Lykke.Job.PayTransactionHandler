@@ -8,6 +8,7 @@ namespace Lykke.Job.PayTransactionHandler.Core.Settings.JobSettings
         public RabbitMqSettings Rabbit { get; set; }
         public TimeSpan WalletsScanPeriod { get; set; }
         public TimeSpan TransactionsScanPeriod { get; set; }
+        public TimeSpan CacheExpirationHandlingPeriod { get; set; }
         public BlockchainSettings Blockchain { get; set; }
         public BitcoinSettings Bitcoin { get; set; }
     }

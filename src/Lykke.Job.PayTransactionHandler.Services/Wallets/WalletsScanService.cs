@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Common;
 using Common.Log;
+using Lykke.Job.PayTransactionHandler.Core;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.DiffService;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
@@ -51,6 +52,9 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
             foreach (var walletState in cacheState)
             {
+                if (walletState.Blockchain == BlockchainType.Ethereum)
+                    continue;
+
                 BalanceModel balance;
 
                 try

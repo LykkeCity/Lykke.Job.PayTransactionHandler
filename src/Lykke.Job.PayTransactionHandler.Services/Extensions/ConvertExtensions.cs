@@ -82,10 +82,12 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
                 Confirmations = src.Confirmations,
                 BlockId = src.BlockId,
                 FirstSeen = txDetails.FirstSeen.DateTime,
-                TransactionId = src.Id,
+                Hash = src.Id,
                 Blockchain = Enum.Parse<Service.PayInternal.Client.Models.BlockchainType>(src.Blockchain.ToString()),
                 AssetId = src.AssetId,
-                SourceWalletAddresses = txDetails.GetSourceWalletAddresses(network).Select(x => x.ToString()).ToArray()
+                SourceWalletAddresses = txDetails.GetSourceWalletAddresses(network).Select(x => x.ToString()).ToArray(),
+                IdentityType =  TransactionIdentityType.Hash,
+                Identity = src.Id
             };
         }
 
@@ -97,8 +99,10 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
                 Amount = src.Amount,
                 Confirmations = src.Confirmations,
                 BlockId = src.BlockId,
-                TransactionId = src.Id,
-                Blockchain = Enum.Parse<Service.PayInternal.Client.Models.BlockchainType>(src.Blockchain.ToString())
+                Hash = src.Id,
+                Blockchain = Enum.Parse<Service.PayInternal.Client.Models.BlockchainType>(src.Blockchain.ToString()),
+                IdentityType = TransactionIdentityType.Hash,
+                Identity = src.Id
             };
         }
 
@@ -112,7 +116,9 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
                 FirstSeen = firstSeen,
                 AssetId = src.AssetId,
                 Blockchain = Enum.Parse<Service.PayInternal.Client.Models.BlockchainType>(src.Blockchain.ToString()),
-                TransactionId = src.Id
+                Hash = src.Id,
+                IdentityType = TransactionIdentityType.Hash,
+                Identity = src.Id
             };
         }
 
@@ -123,9 +129,11 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
                 BlockId = src.BlockId,
                 Confirmations = src.Confirmations,
                 FirstSeen = firstSeen,
-                TransactionId = src.Id,
+                Hash = src.Id,
                 Amount = src.Amount,
-                Blockchain = Enum.Parse<Service.PayInternal.Client.Models.BlockchainType>(src.Blockchain.ToString())
+                Blockchain = Enum.Parse<Service.PayInternal.Client.Models.BlockchainType>(src.Blockchain.ToString()),
+                IdentityType = TransactionIdentityType.Hash,
+                Identity = src.Id
             };
         }
     }

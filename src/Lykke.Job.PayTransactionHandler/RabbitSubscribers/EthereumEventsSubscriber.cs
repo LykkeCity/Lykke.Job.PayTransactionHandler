@@ -53,7 +53,7 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
         private async Task ProcessMessageAsync(TransferEvent arg)
         {
-            await _log.WriteInfoAsync(nameof(ProcessMessageAsync),
+            _log.WriteInfo(nameof(ProcessMessageAsync),
                 $"message = {arg.ToJson()}", "Got new message from ethereum core");
 
             try
@@ -62,22 +62,20 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
             }
             catch (UnknownErc20TokenException tokenEx)
             {
-                await _log.WriteErrorAsync(nameof(ProcessMessageAsync),
-                    new {tokenEx.TokenAddress}.ToJson(), tokenEx);
+                _log.WriteError(nameof(ProcessMessageAsync), new {tokenEx.TokenAddress}, tokenEx);
 
                 throw;
             }
             catch (UnknownErc20AssetException assetEx)
             {
-                await _log.WriteErrorAsync(nameof(ProcessMessageAsync),
-                    new {assetEx.Asset}.ToJson(), assetEx);
+                _log.WriteError(nameof(ProcessMessageAsync), new {assetEx.Asset}, assetEx);
 
                 throw;
             }
             catch (UnexpectedEthereumTransferType typeEx)
             {
-                await _log.WriteErrorAsync(nameof(ProcessMessageAsync),
-                    new {transferType = typeEx.TransferType.ToString()}.ToJson(), typeEx);
+                _log.WriteError(nameof(ProcessMessageAsync), new {transferType = typeEx.TransferType.ToString()},
+                    typeEx);
 
                 throw;
             }

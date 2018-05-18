@@ -55,7 +55,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Ethereum
                     var createTransactionRequest = Mapper.Map<CreateTransactionRequest>(
                         transferEvent, opt =>
                         {
-                            opt.Items["AssetId"] = asset.Name;
+                            opt.Items["AssetId"] = asset.DisplayId;
                             opt.Items["ConfirmationsToSucceed"] = _confirmationsToSucceed;
                             opt.Items["AssetMultiplier"] = asset.MultiplierPower;
                             opt.Items["AssetAccuracy"] = asset.Accuracy;

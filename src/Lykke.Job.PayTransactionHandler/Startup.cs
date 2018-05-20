@@ -59,7 +59,8 @@ namespace Lykke.Job.PayTransactionHandler
 
                 Log = CreateLogWithSlack(services, appSettings);
 
-                builder.RegisterModule(new JobModule(appSettings.CurrentValue, appSettings.Nested(x => x.PayTransactionHandlerJob.Db), Log));
+                builder.RegisterModule(new JobModule(appSettings, Log));
+                builder.RegisterModule(new CqrsModule(appSettings, Log));
 
                 builder.Populate(services);
 

@@ -13,6 +13,8 @@ namespace Lykke.Job.PayTransactionHandler.Core.Settings
         public NinjaServiceClientSettings NinjaServiceClient { get; set; }
         public AssetsServiceClientSettings AssetsServiceClient { get; set; }
         public MonitoringServiceClientSettings MonitoringServiceClient { get; set; }
+        public TransportSettings Transports { get; set; }
+        public OperationsServiceClientSettings OperationsServiceClient { get; set; }
     }
 
     public class NinjaServiceClientSettings
@@ -31,5 +33,17 @@ namespace Lykke.Job.PayTransactionHandler.Core.Settings
     {
         [HttpCheck("api/isalive", false)]
         public string MonitoringServiceUrl { get; set; }
+    }
+
+    public class TransportSettings
+    {
+        [AmqpCheck]
+        public string ClientRabbitMqConnectionString { get; set; }
+    }
+
+    public class OperationsServiceClientSettings
+    {
+        [HttpCheck("api/isalive")]
+        public string ServiceUrl { get; set; }
     }
 }

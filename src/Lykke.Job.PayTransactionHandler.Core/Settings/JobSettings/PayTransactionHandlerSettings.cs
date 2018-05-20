@@ -11,6 +11,7 @@ namespace Lykke.Job.PayTransactionHandler.Core.Settings.JobSettings
         public TimeSpan CacheExpirationHandlingPeriod { get; set; }
         public BlockchainSettings Blockchain { get; set; }
         public BitcoinSettings Bitcoin { get; set; }
+        public CqrsSettings Cqrs { get; set; }
     }
 
     public class BlockchainSettings
@@ -21,5 +22,10 @@ namespace Lykke.Job.PayTransactionHandler.Core.Settings.JobSettings
     public class BitcoinSettings
     {
         public string Network { get; set; }
+    }
+
+    public class CqrsSettings
+    {
+        public int RetryDelayInMilliseconds { get; set; }
     }
 }

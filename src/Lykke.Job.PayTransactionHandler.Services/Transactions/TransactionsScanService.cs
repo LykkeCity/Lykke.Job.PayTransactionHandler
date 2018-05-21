@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Common;
 using Common.Log;
+using Lykke.Job.PayTransactionHandler.Core;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.DiffService;
 using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
@@ -45,6 +46,9 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             foreach (TransactionState cacheTxState in cacheState)
             {
                 BcnTransaction cacheTx = cacheTxState.Transaction;
+
+                if (cacheTx.Blockchain == BlockchainType.Ethereum)
+                    continue;
 
                 GetTransactionResponse bcnTransactionState;
 

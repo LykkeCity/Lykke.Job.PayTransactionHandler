@@ -60,22 +60,10 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                 try
                 {
                     balance = await _qBitNinjaClient.GetBalance(BitcoinAddress.Create(walletState.Address));
-
-                    //todo: remove logging
-                    await _log.WriteInfoAsync(nameof(ExecuteAsync), new
-                    {
-                        Blockchain = walletState.Blockchain.ToString(),
-                        walletState.Address,
-                        walletState.DueDate
-                    }.ToJson(), new
-                    {
-                        walletState,
-                        ninjaOperations = GetIncomingPaymentOperations(balance, walletState.Address)
-                    }.ToJson());
                 }
                 catch (Exception ex)
                 {
-                    await _log.WriteErrorAsync("Getting balance from ninja", walletState?.ToJson(), ex);
+                    await _log.WriteErrorAsync("Getting balance from ninja", walletState.ToJson(), ex);
 
                     continue;
                 }

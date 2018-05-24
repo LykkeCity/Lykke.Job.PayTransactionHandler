@@ -44,6 +44,10 @@ namespace Lykke.Job.PayTransactionHandler.Handlers
 
             var context = JsonConvert.DeserializeObject<PaymentContext>(operation.ContextJson);
 
+            // handling only payment operations
+            if (context == null)
+                return CommandHandlingResult.Ok();
+
             string operationId = cmd.OperationId.ToString("D");
 
             await _payInternalClient.CreateLykkePaymentTransactionAsync(new CreateLykkeTransactionRequest

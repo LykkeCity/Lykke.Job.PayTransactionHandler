@@ -8,6 +8,7 @@ using Lykke.Job.PayTransactionHandler.Core.Exceptions;
 using Lykke.Service.Operations.Client;
 using Lykke.Service.Operations.Contracts;
 using Lykke.Service.PayInternal.Client;
+using Lykke.Service.PayInternal.Client.Exceptions;
 using Lykke.Service.PayInternal.Client.Models.Transactions;
 using Newtonsoft.Json;
 
@@ -50,7 +51,7 @@ namespace Lykke.Job.PayTransactionHandler.Handlers
 
             string operationId = cmd.OperationId.ToString("D");
 
-            await _payInternalClient.CreateLykkePaymentTransactionAsync(new CreateLykkeTransactionRequest
+            var request = new CreateLykkeTransactionRequest
             {
                 Amount = context.Amount,
                 AssetId = context.AssetId,
@@ -60,7 +61,23 @@ namespace Lykke.Job.PayTransactionHandler.Handlers
                 SourceWalletAddresses =
                     operation.ClientId.HasValue ? new[] {operation.ClientId.Value.ToString("D")} : null,
                 Confirmations = _confirmationsToSucceed
-            });
+            };
+
+            try
+            {
+                await _payInternalClient.CreateLykkePaymentTransactionAsync(request);
+            }
+            catch (DefaultErrorResponseException defaultEx)
+            {
+                if (defaultEx.StatusCode.Is4xx())
+                {
+                    _log.WriteError(nameof(CreateLykkePaymentTransactionCommand), request, defaultEx);
+
+                    return CommandHandlingResult.Ok();
+                }
+
+                throw;
+            }
 
             return CommandHandlingResult.Ok();
         }

@@ -40,7 +40,6 @@
     <PackageReference Include="Lykke.RabbitMqBroker" Version="7.1.0" />
     <PackageReference Include="Lykke.Service.Assets.Client" Version="4.0.1" />
     <PackageReference Include="Lykke.Service.Operations.Client" Version="2.2.28" />
-    <PackageReference Include="Lykke.Service.Operations.Contracts" Version="1.0.1" />
     <PackageReference Include="Lykke.Service.PayInternal.Client" Version="2.0.8" />
     <PackageReference Include="Lykke.Service.PayInternal.Contract" Version="2.0.1" />
     <!-- #endif -->

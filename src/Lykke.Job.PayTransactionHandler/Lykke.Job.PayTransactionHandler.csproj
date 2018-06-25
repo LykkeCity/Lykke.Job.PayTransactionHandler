@@ -22,30 +22,30 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="6.2.2" />
-    <PackageReference Include="Lykke.Common" Version="6.8.2" />
+    <PackageReference Include="Lykke.Common" Version="7.0.0" />
     <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.7.1" />
-    <PackageReference Include="Lykke.Cqrs" Version="4.5.0" />
+    <PackageReference Include="Lykke.Cqrs" Version="4.6.2" />
     <PackageReference Include="Lykke.Job.EthereumCore.Contracts" Version="1.1.5" />
     <!-- #if azurequeuesub -->
-    <PackageReference Include="Lykke.JobTriggers" Version="2.1.0" />
+    <PackageReference Include="Lykke.JobTriggers" Version="2.2.0" />
     <!-- #endif -->
 	<PackageReference Include="Lykke.MonitoringServiceApiCaller" Version="1.2.2" />
     <PackageReference Include="Lykke.Logs" Version="4.3.4" />
     <PackageReference Include="Lykke.Messaging" Version="5.0.0" />
     <PackageReference Include="Lykke.Messaging.RabbitMq" Version="2.0.0" />
     <!-- #if rabbitpub -->
-    <PackageReference Include="Lykke.RabbitMq.Azure" Version="5.0.1" />
+    <PackageReference Include="Lykke.RabbitMq.Azure" Version="5.1.0" />
     <!-- #endif -->
     <!-- #if rabbitpub || rabbitsub -->
-    <PackageReference Include="Lykke.RabbitMqBroker" Version="7.0.0" />
-    <PackageReference Include="Lykke.Service.Assets.Client" Version="3.3.3" />
+    <PackageReference Include="Lykke.RabbitMqBroker" Version="7.1.0" />
+    <PackageReference Include="Lykke.Service.Assets.Client" Version="4.0.1" />
     <PackageReference Include="Lykke.Service.Operations.Client" Version="2.2.18" />
     <PackageReference Include="Lykke.Service.Operations.Contracts" Version="1.0.1" />
-    <PackageReference Include="Lykke.Service.PayInternal.Client" Version="1.1.21" />
-    <PackageReference Include="Lykke.Service.PayInternal.Contract" Version="1.0.28" />
+    <PackageReference Include="Lykke.Service.PayInternal.Client" Version="2.0.7" />
+    <PackageReference Include="Lykke.Service.PayInternal.Contract" Version="2.0.1" />
     <!-- #endif -->
     <PackageReference Include="Lykke.SettingsReader" Version="2.4.0" />
-    <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.4" />
+    <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="2.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.0.3" />

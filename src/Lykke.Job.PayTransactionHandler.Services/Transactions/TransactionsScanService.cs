@@ -47,7 +47,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             {
                 BcnTransaction cacheTx = cacheTxState.Transaction;
 
-                if (cacheTx.Blockchain == BlockchainType.Ethereum)
+                if (cacheTx.Blockchain != BlockchainType.Bitcoin)
                     continue;
 
                 GetTransactionResponse bcnTransactionState;

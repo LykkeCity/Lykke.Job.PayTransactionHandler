@@ -90,7 +90,7 @@ namespace Lykke.Job.PayTransactionHandler
                     app.UseDeveloperExceptionPage();
                 }
 
-                app.UseLykkeMiddleware("PayTransactionHandler", ex => new ErrorResponse {ErrorMessage = "Technical problem"});
+                app.UseLykkeMiddleware(ex => new ErrorResponse {ErrorMessage = "Technical problem"});
 
                 app.UseMvc();
                 app.UseSwagger(c =>

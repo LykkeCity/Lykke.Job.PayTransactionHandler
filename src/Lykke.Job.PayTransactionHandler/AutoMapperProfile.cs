@@ -1,5 +1,4 @@
-﻿using System;
-using AutoMapper;
+﻿using AutoMapper;
 using Lykke.Job.EthereumCore.Contracts.Enums.LykkePay;
 using Lykke.Job.EthereumCore.Contracts.Events.LykkePay;
 using Lykke.Job.PayTransactionHandler.Core;
@@ -22,7 +21,11 @@ namespace Lykke.Job.PayTransactionHandler
                 .ForMember(dest => dest.AssetId,
                     opt => opt.ResolveUsing((src, dest, destMember, resContext) =>
                         dest.AssetId = (string) resContext.Items["AssetId"]))
-                .ForMember(dest => dest.Blockchain, opt => opt.UseValue(BlockchainType.Ethereum))
+                .ForMember(dest => dest.Blockchain,
+                    opt => opt.MapFrom(src =>
+                        src.WorkflowType == WorkflowType.Airlines
+                            ? BlockchainType.EthereumIata
+                            : BlockchainType.Ethereum))
                 .ForMember(dest => dest.Hash, opt => opt.MapFrom(src => src.TransactionHash))
                 .ForMember(dest => dest.SourceWalletAddresses, opt => opt.MapFrom(src => new[] {src.FromAddress}))
                 .ForMember(dest => dest.IdentityType, opt => opt.UseValue(TransactionIdentityType.Hash))
@@ -39,7 +42,11 @@ namespace Lykke.Job.PayTransactionHandler
                             (int) resContext.Items["AssetAccuracy"])))
                 .ForMember(dest => dest.FirstSeen, opt => opt.MapFrom(src => src.DetectedTime))
                 .ForMember(dest => dest.BlockId, opt => opt.MapFrom(src => src.BlockHash))
-                .ForMember(dest => dest.Blockchain, opt => opt.UseValue(BlockchainType.Ethereum))
+                .ForMember(dest => dest.Blockchain,
+                    opt => opt.MapFrom(src =>
+                        src.WorkflowType == WorkflowType.Airlines
+                            ? BlockchainType.EthereumIata
+                            : BlockchainType.Ethereum))
                 .ForMember(dest => dest.Hash, opt => opt.MapFrom(src => src.TransactionHash))
                 .ForMember(dest => dest.IdentityType, opt => opt.UseValue(TransactionIdentityType.Specific))
                 .ForMember(dest => dest.Identity, opt => opt.MapFrom(src => src.OperationId))

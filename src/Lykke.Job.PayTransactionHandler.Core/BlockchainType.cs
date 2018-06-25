@@ -18,6 +18,11 @@
         /// <summary>
         /// Ethereum blockchain
         /// </summary>
-        Ethereum
+        Ethereum,
+
+        /// <summary>
+        /// Ethereum blockchain with IATA specific implementation
+        /// </summary>
+        EthereumIata
     }
 }

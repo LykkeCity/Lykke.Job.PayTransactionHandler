@@ -72,7 +72,7 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
                 throw;
             }
-            catch (UnexpectedEthereumTransferType typeEx)
+            catch (UnexpectedEthereumTransferTypeException typeEx)
             {
                 _log.WriteError(nameof(ProcessMessageAsync), new {transferType = typeEx.TransferType.ToString()},
                     typeEx);

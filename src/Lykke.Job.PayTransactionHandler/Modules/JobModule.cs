@@ -160,8 +160,6 @@ namespace Lykke.Job.PayTransactionHandler.Modules
                 .SingleInstance();
 
             builder.RegisterType<EthereumTransferHandler>()
-                .WithParameter(
-                    TypedParameter.From(_settings.PayTransactionHandlerJob.Blockchain.ConfirmationsToSucceed))
                 .As<IEthereumTransferHandler>();
         }
     }

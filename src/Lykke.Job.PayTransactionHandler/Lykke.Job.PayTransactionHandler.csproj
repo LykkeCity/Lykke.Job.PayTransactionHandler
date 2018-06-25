@@ -24,15 +24,15 @@
     <PackageReference Include="AutoMapper" Version="7.0.1" />
     <PackageReference Include="Lykke.Common" Version="7.0.1" />
     <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.9.0" />
-    <PackageReference Include="Lykke.Cqrs" Version="4.6.2" />
+    <PackageReference Include="Lykke.Cqrs" Version="4.8.0" />
     <PackageReference Include="Lykke.Job.EthereumCore.Contracts" Version="1.1.5" />
     <!-- #if azurequeuesub -->
     <PackageReference Include="Lykke.JobTriggers" Version="2.2.0" />
     <!-- #endif -->
-	<PackageReference Include="Lykke.MonitoringServiceApiCaller" Version="1.2.2" />
+	<PackageReference Include="Lykke.MonitoringServiceApiCaller" Version="1.6.0" />
     <PackageReference Include="Lykke.Logs" Version="5.0.0" />
-    <PackageReference Include="Lykke.Messaging" Version="5.0.0" />
-    <PackageReference Include="Lykke.Messaging.RabbitMq" Version="2.0.0" />
+    <PackageReference Include="Lykke.Messaging" Version="5.1.0" />
+    <PackageReference Include="Lykke.Messaging.RabbitMq" Version="2.1.0" />
     <!-- #if rabbitpub -->
     <PackageReference Include="Lykke.RabbitMq.Azure" Version="5.1.0" />
     <!-- #endif -->

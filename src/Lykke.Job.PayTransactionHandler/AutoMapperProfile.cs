@@ -27,8 +27,12 @@ namespace Lykke.Job.PayTransactionHandler
                             : BlockchainType.Ethereum))
                 .ForMember(dest => dest.FirstSeen, opt => opt.MapFrom(src => src.DetectedTime))
                 .ForMember(dest => dest.Hash, opt => opt.MapFrom(src => src.TransactionHash))
-                .ForMember(dest => dest.Identity, opt => opt.MapFrom(src => src.TransactionHash))
-                .ForMember(dest => dest.IdentityType, opt => opt.UseValue(TransactionIdentityType.Hash));
+                .ForMember(dest => dest.Identity, opt => opt.MapFrom(src => src.OperationId ?? src.TransactionHash))
+                .ForMember(dest => dest.IdentityType,
+                    opt => opt.MapFrom(src =>
+                        string.IsNullOrEmpty(src.OperationId)
+                            ? TransactionIdentityType.Hash
+                            : TransactionIdentityType.Specific));
 
             CreateMap<TransferEvent, RegisterOutboundTxModel>(MemberList.Destination)
                 .ForMember(dest => dest.Amount,

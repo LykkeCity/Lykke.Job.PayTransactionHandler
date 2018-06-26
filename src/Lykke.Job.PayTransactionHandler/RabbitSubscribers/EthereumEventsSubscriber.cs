@@ -79,6 +79,13 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
                 throw;
             }
+            catch (UnexpectedEthereumEventTypeException eventTypeEx)
+            {
+                _log.WriteError(nameof(ProcessMessageAsync), new {eventType = eventTypeEx.EventType.ToString()},
+                    eventTypeEx);
+
+                throw;
+            }
         }
 
         public void Dispose()

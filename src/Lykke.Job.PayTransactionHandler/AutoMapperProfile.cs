@@ -55,11 +55,21 @@ namespace Lykke.Job.PayTransactionHandler
 
             CreateMap<TransferEvent, FailOutboundTxModel>(MemberList.Destination)
                 .ForMember(dest => dest.Identity, opt => opt.MapFrom(src => src.OperationId))
-                .ForMember(dest => dest.IdentityType, opt => opt.UseValue(TransactionIdentityType.Specific));
+                .ForMember(dest => dest.IdentityType, opt => opt.UseValue(TransactionIdentityType.Specific))
+                .ForMember(dest => dest.Blockchain,
+                    opt => opt.MapFrom(src =>
+                        src.WorkflowType == WorkflowType.Airlines
+                            ? BlockchainType.EthereumIata
+                            : BlockchainType.Ethereum));
 
             CreateMap<TransferEvent, CompleteOutboundTxModel>(MemberList.Destination)
                 .ForMember(dest => dest.Identity, opt => opt.MapFrom(src => src.OperationId))
-                .ForMember(dest => dest.IdentityType, opt => opt.UseValue(TransactionIdentityType.Specific));
+                .ForMember(dest => dest.IdentityType, opt => opt.UseValue(TransactionIdentityType.Specific))
+                .ForMember(dest => dest.Blockchain,
+                    opt => opt.MapFrom(src =>
+                        src.WorkflowType == WorkflowType.Airlines
+                            ? BlockchainType.EthereumIata
+                            : BlockchainType.Ethereum));
         }
     }
 }

@@ -41,7 +41,7 @@
     <PackageReference Include="Lykke.Service.Assets.Client" Version="4.0.1" />
     <PackageReference Include="Lykke.Service.Operations.Client" Version="2.2.28" />
     <PackageReference Include="Lykke.Service.PayInternal.Client" Version="2.0.9" />
-    <PackageReference Include="Lykke.Service.PayInternal.Contract" Version="2.0.1" />
+    <PackageReference Include="Lykke.Service.PayInternal.Contract" Version="2.0.2" />
     <!-- #endif -->
     <PackageReference Include="Lykke.SettingsReader" Version="2.4.0" />
     <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.5" />

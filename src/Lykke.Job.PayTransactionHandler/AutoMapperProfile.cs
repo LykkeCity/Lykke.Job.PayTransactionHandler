@@ -69,7 +69,14 @@ namespace Lykke.Job.PayTransactionHandler
                     opt => opt.MapFrom(src =>
                         src.WorkflowType == WorkflowType.Airlines
                             ? BlockchainType.EthereumIata
-                            : BlockchainType.Ethereum));
+                            : BlockchainType.Ethereum))
+                .ForMember(dest => dest.Amount,
+                    opt => opt.ResolveUsing((src, dest, destMember, resContext) =>
+                        dest.Amount = src.Amount.ToAmount((int) resContext.Items["AssetMultiplier"],
+                            (int) resContext.Items["AssetAccuracy"])))
+                .ForMember(dest => dest.BlockId, opt => opt.MapFrom(src => src.BlockHash))
+                .ForMember(dest => dest.FirstSeen, opt => opt.MapFrom(src => src.DetectedTime))
+                .ForMember(dest => dest.Hash, opt => opt.MapFrom(src => src.TransactionHash));
         }
     }
 }

@@ -77,7 +77,11 @@ namespace Lykke.Job.PayTransactionHandler.Services.Ethereum
                             break;
                         case EventType.Completed:
                             await _payInternalClient.CompleteEthereumOutboundTransactionAsync(
-                                Mapper.Map<CompleteOutboundTxModel>(transferEvent));
+                                Mapper.Map<CompleteOutboundTxModel>(transferEvent, opt =>
+                                {
+                                    opt.Items["AssetMultiplier"] = asset.MultiplierPower;
+                                    opt.Items["AssetAccuracy"] = asset.Accuracy;
+                                }));
                             break;
                         default: throw new UnexpectedEthereumEventTypeException(transferEvent.EventType);
                     }

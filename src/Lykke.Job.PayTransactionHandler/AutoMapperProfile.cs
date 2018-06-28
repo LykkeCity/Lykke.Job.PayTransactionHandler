@@ -21,10 +21,7 @@ namespace Lykke.Job.PayTransactionHandler
                         dest.AssetId = (string) resContext.Items["AssetId"]))
                 .ForMember(dest => dest.BlockId, opt => opt.MapFrom(src => src.BlockHash))
                 .ForMember(dest => dest.Blockchain,
-                    opt => opt.MapFrom(src =>
-                        src.WorkflowType == WorkflowType.Airlines
-                            ? BlockchainType.EthereumIata
-                            : BlockchainType.Ethereum))
+                    opt => opt.MapFrom(src => src.WorkflowType.GetBlockchainType()))
                 .ForMember(dest => dest.FirstSeen, opt => opt.MapFrom(src => src.DetectedTime))
                 .ForMember(dest => dest.Hash, opt => opt.MapFrom(src => src.TransactionHash))
                 .ForMember(dest => dest.Identity, opt => opt.MapFrom(src => src.OperationId ?? src.TransactionHash))
@@ -44,10 +41,7 @@ namespace Lykke.Job.PayTransactionHandler
                         dest.AssetId = (string) resContext.Items["AssetId"]))
                 .ForMember(dest => dest.BlockId, opt => opt.MapFrom(src => src.BlockHash))
                 .ForMember(dest => dest.Blockchain,
-                    opt => opt.MapFrom(src =>
-                        src.WorkflowType == WorkflowType.Airlines
-                            ? BlockchainType.EthereumIata
-                            : BlockchainType.Ethereum))
+                    opt => opt.MapFrom(src => src.WorkflowType.GetBlockchainType()))
                 .ForMember(dest => dest.FirstSeen, opt => opt.MapFrom(src => src.DetectedTime))
                 .ForMember(dest => dest.Hash, opt => opt.MapFrom(src => src.TransactionHash))
                 .ForMember(dest => dest.Identity, opt => opt.MapFrom(src => src.OperationId))
@@ -57,19 +51,13 @@ namespace Lykke.Job.PayTransactionHandler
                 .ForMember(dest => dest.Identity, opt => opt.MapFrom(src => src.OperationId))
                 .ForMember(dest => dest.IdentityType, opt => opt.UseValue(TransactionIdentityType.Specific))
                 .ForMember(dest => dest.Blockchain,
-                    opt => opt.MapFrom(src =>
-                        src.WorkflowType == WorkflowType.Airlines
-                            ? BlockchainType.EthereumIata
-                            : BlockchainType.Ethereum));
+                    opt => opt.MapFrom(src => src.WorkflowType.GetBlockchainType()));
 
             CreateMap<TransferEvent, CompleteOutboundTxModel>(MemberList.Destination)
                 .ForMember(dest => dest.Identity, opt => opt.MapFrom(src => src.OperationId))
                 .ForMember(dest => dest.IdentityType, opt => opt.UseValue(TransactionIdentityType.Specific))
                 .ForMember(dest => dest.Blockchain,
-                    opt => opt.MapFrom(src =>
-                        src.WorkflowType == WorkflowType.Airlines
-                            ? BlockchainType.EthereumIata
-                            : BlockchainType.Ethereum))
+                    opt => opt.MapFrom(src => src.WorkflowType.GetBlockchainType()))
                 .ForMember(dest => dest.Amount,
                     opt => opt.ResolveUsing((src, dest, destMember, resContext) =>
                         dest.Amount = src.Amount.ToAmount((int) resContext.Items["AssetMultiplier"],
@@ -77,6 +65,12 @@ namespace Lykke.Job.PayTransactionHandler
                 .ForMember(dest => dest.BlockId, opt => opt.MapFrom(src => src.BlockHash))
                 .ForMember(dest => dest.FirstSeen, opt => opt.MapFrom(src => src.DetectedTime))
                 .ForMember(dest => dest.Hash, opt => opt.MapFrom(src => src.TransactionHash));
+
+            CreateMap<TransferEvent, NotEnoughFundsOutboundTxModel>(MemberList.Destination)
+                .ForMember(dest => dest.Identity, opt => opt.MapFrom(src => src.OperationId))
+                .ForMember(dest => dest.IdentityType, opt => opt.UseValue(TransactionIdentityType.Specific))
+                .ForMember(dest => dest.Blockchain,
+                    opt => opt.MapFrom(src => src.WorkflowType.GetBlockchainType()));
         }
     }
 }

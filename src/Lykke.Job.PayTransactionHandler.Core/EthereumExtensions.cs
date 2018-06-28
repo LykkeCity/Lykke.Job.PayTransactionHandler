@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Lykke.Job.EthereumCore.Contracts.Enums.LykkePay;
 
 namespace Lykke.Job.PayTransactionHandler.Core
 {
@@ -17,6 +18,11 @@ namespace Lykke.Job.PayTransactionHandler.Core
             res /= (decimal) Math.Pow(10, accuracy);
 
             return res;
+        }
+
+        public static BlockchainType GetBlockchainType(this WorkflowType src)
+        {
+            return src == WorkflowType.Airlines ? BlockchainType.EthereumIata : BlockchainType.Ethereum;
         }
     }
 }

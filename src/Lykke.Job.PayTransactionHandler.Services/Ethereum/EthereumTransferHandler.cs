@@ -83,6 +83,10 @@ namespace Lykke.Job.PayTransactionHandler.Services.Ethereum
                                     opt.Items["AssetAccuracy"] = asset.Accuracy;
                                 }));
                             break;
+                        case EventType.NotEnoughFunds:
+                            await _payInternalClient.FailEthereumOutboundTransactionAsync(
+                                Mapper.Map<NotEnoughFundsOutboundTxModel>(transferEvent));
+                            break;
                         default: throw new UnexpectedEthereumEventTypeException(transferEvent.EventType);
                     }
 

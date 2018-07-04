@@ -52,7 +52,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
             foreach (var walletState in cacheState)
             {
-                if (walletState.Blockchain == BlockchainType.Ethereum)
+                if (walletState.Blockchain != BlockchainType.Bitcoin)
                     continue;
 
                 BalanceModel balance;

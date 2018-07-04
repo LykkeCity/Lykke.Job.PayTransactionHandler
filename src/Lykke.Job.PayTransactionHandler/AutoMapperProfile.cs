@@ -1,9 +1,9 @@
-﻿using System;
-using AutoMapper;
+﻿using AutoMapper;
 using Lykke.Job.EthereumCore.Contracts.Enums.LykkePay;
 using Lykke.Job.EthereumCore.Contracts.Events.LykkePay;
 using Lykke.Job.PayTransactionHandler.Core;
 using Lykke.Service.PayInternal.Client.Models.Transactions;
+using Lykke.Service.PayInternal.Client.Models.Transactions.Ethereum;
 
 namespace Lykke.Job.PayTransactionHandler
 {
@@ -11,41 +11,66 @@ namespace Lykke.Job.PayTransactionHandler
     {
         public AutoMapperProfile()
         {
-            CreateMap<TransferEvent, CreateTransactionRequest>(MemberList.Destination)
-                .ForMember(dest => dest.WalletAddress, opt => opt.MapFrom(src => src.ToAddress))
+            CreateMap<TransferEvent, RegisterInboundTxModel>(MemberList.Destination)
                 .ForMember(dest => dest.Amount,
                     opt => opt.ResolveUsing((src, dest, destMember, resContext) =>
                         dest.Amount = src.Amount.ToAmount((int) resContext.Items["AssetMultiplier"],
                             (int) resContext.Items["AssetAccuracy"])))
-                .ForMember(dest => dest.FirstSeen, opt => opt.MapFrom(src => src.DetectedTime))
-                .ForMember(dest => dest.BlockId, opt => opt.MapFrom(src => src.BlockHash))
                 .ForMember(dest => dest.AssetId,
                     opt => opt.ResolveUsing((src, dest, destMember, resContext) =>
                         dest.AssetId = (string) resContext.Items["AssetId"]))
-                .ForMember(dest => dest.Blockchain, opt => opt.UseValue(BlockchainType.Ethereum))
+                .ForMember(dest => dest.BlockId, opt => opt.MapFrom(src => src.BlockHash))
+                .ForMember(dest => dest.Blockchain,
+                    opt => opt.MapFrom(src => src.WorkflowType.GetBlockchainType()))
+                .ForMember(dest => dest.FirstSeen, opt => opt.MapFrom(src => src.DetectedTime))
                 .ForMember(dest => dest.Hash, opt => opt.MapFrom(src => src.TransactionHash))
-                .ForMember(dest => dest.SourceWalletAddresses, opt => opt.MapFrom(src => new[] {src.FromAddress}))
-                .ForMember(dest => dest.IdentityType, opt => opt.UseValue(TransactionIdentityType.Hash))
-                .ForMember(dest => dest.Identity, opt => opt.MapFrom(src => src.TransactionHash))
-                .ForMember(dest => dest.Confirmations,
-                    opt => opt.ResolveUsing((src, dest, destMember, resContext) =>
-                        dest.Confirmations = (int) resContext.Items["ConfirmationsToSucceed"]));
+                .ForMember(dest => dest.Identity, opt => opt.MapFrom(src => src.OperationId ?? src.TransactionHash))
+                .ForMember(dest => dest.IdentityType,
+                    opt => opt.MapFrom(src =>
+                        string.IsNullOrEmpty(src.OperationId)
+                            ? TransactionIdentityType.Hash
+                            : TransactionIdentityType.Specific));
 
-            CreateMap<TransferEvent, UpdateTransactionRequest>(MemberList.Destination)
-                .ForMember(dest => dest.WalletAddress, opt => opt.MapFrom(src => src.FromAddress))
+            CreateMap<TransferEvent, RegisterOutboundTxModel>(MemberList.Destination)
                 .ForMember(dest => dest.Amount,
                     opt => opt.ResolveUsing((src, dest, destMember, resContext) =>
                         dest.Amount = src.Amount.ToAmount((int) resContext.Items["AssetMultiplier"],
                             (int) resContext.Items["AssetAccuracy"])))
-                .ForMember(dest => dest.FirstSeen, opt => opt.MapFrom(src => src.DetectedTime))
+                .ForMember(dest => dest.AssetId,
+                    opt => opt.ResolveUsing((src, dest, destMember, resContext) =>
+                        dest.AssetId = (string) resContext.Items["AssetId"]))
                 .ForMember(dest => dest.BlockId, opt => opt.MapFrom(src => src.BlockHash))
-                .ForMember(dest => dest.Blockchain, opt => opt.UseValue(BlockchainType.Ethereum))
+                .ForMember(dest => dest.Blockchain,
+                    opt => opt.MapFrom(src => src.WorkflowType.GetBlockchainType()))
+                .ForMember(dest => dest.FirstSeen, opt => opt.MapFrom(src => src.DetectedTime))
                 .ForMember(dest => dest.Hash, opt => opt.MapFrom(src => src.TransactionHash))
-                .ForMember(dest => dest.IdentityType, opt => opt.UseValue(TransactionIdentityType.Specific))
                 .ForMember(dest => dest.Identity, opt => opt.MapFrom(src => src.OperationId))
-                .ForMember(dest => dest.Confirmations,
-                    opt => opt.ResolveUsing((src, dest, destMember, resContext) => dest.Confirmations =
-                        src.EventType == EventType.Completed ? (int) resContext.Items["ConfirmationsToSucceed"] : 0));
+                .ForMember(dest => dest.IdentityType, opt => opt.UseValue(TransactionIdentityType.Specific));
+
+            CreateMap<TransferEvent, FailOutboundTxModel>(MemberList.Destination)
+                .ForMember(dest => dest.Identity, opt => opt.MapFrom(src => src.OperationId))
+                .ForMember(dest => dest.IdentityType, opt => opt.UseValue(TransactionIdentityType.Specific))
+                .ForMember(dest => dest.Blockchain,
+                    opt => opt.MapFrom(src => src.WorkflowType.GetBlockchainType()));
+
+            CreateMap<TransferEvent, CompleteOutboundTxModel>(MemberList.Destination)
+                .ForMember(dest => dest.Identity, opt => opt.MapFrom(src => src.OperationId))
+                .ForMember(dest => dest.IdentityType, opt => opt.UseValue(TransactionIdentityType.Specific))
+                .ForMember(dest => dest.Blockchain,
+                    opt => opt.MapFrom(src => src.WorkflowType.GetBlockchainType()))
+                .ForMember(dest => dest.Amount,
+                    opt => opt.ResolveUsing((src, dest, destMember, resContext) =>
+                        dest.Amount = src.Amount.ToAmount((int) resContext.Items["AssetMultiplier"],
+                            (int) resContext.Items["AssetAccuracy"])))
+                .ForMember(dest => dest.BlockId, opt => opt.MapFrom(src => src.BlockHash))
+                .ForMember(dest => dest.FirstSeen, opt => opt.MapFrom(src => src.DetectedTime))
+                .ForMember(dest => dest.Hash, opt => opt.MapFrom(src => src.TransactionHash));
+
+            CreateMap<TransferEvent, NotEnoughFundsOutboundTxModel>(MemberList.Destination)
+                .ForMember(dest => dest.Identity, opt => opt.MapFrom(src => src.OperationId))
+                .ForMember(dest => dest.IdentityType, opt => opt.UseValue(TransactionIdentityType.Specific))
+                .ForMember(dest => dest.Blockchain,
+                    opt => opt.MapFrom(src => src.WorkflowType.GetBlockchainType()));
         }
     }
 }

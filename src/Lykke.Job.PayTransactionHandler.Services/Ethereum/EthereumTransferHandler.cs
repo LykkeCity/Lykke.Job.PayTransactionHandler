@@ -9,7 +9,7 @@ using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Service.Assets.Client;
 using Lykke.Service.Assets.Client.Models;
 using Lykke.Service.PayInternal.Client;
-using Lykke.Service.PayInternal.Client.Models.Transactions;
+using Lykke.Service.PayInternal.Client.Models.Transactions.Ethereum;
 
 namespace Lykke.Job.PayTransactionHandler.Services.Ethereum
 {
@@ -17,17 +17,14 @@ namespace Lykke.Job.PayTransactionHandler.Services.Ethereum
     {
         private readonly ILog _log;
         private readonly IPayInternalClient _payInternalClient;
-        private readonly int _confirmationsToSucceed;
         private readonly IAssetsService _assetsService;
 
         public EthereumTransferHandler(
             ILog log,
             IPayInternalClient payInternalClient,
-            int confirmationsToSucceed,
             IAssetsService assetsService)
         {
             _payInternalClient = payInternalClient ?? throw new ArgumentNullException(nameof(payInternalClient));
-            _confirmationsToSucceed = confirmationsToSucceed;
             _assetsService = assetsService;
             _log = log?.CreateComponentScope(nameof(EthereumTransferHandler)) ??
                    throw new ArgumentNullException(nameof(EthereumTransferHandler));
@@ -49,39 +46,54 @@ namespace Lykke.Job.PayTransactionHandler.Services.Ethereum
 
             switch (transferEvent.SenderType)
             {
-                // successful payment transaction
                 case SenderType.Customer:
-
-                    var createTransactionRequest = Mapper.Map<CreateTransactionRequest>(
+                    var inboundTransactionRequest = Mapper.Map<RegisterInboundTxModel>(
                         transferEvent, opt =>
                         {
                             opt.Items["AssetId"] = asset.DisplayId;
-                            opt.Items["ConfirmationsToSucceed"] = _confirmationsToSucceed;
                             opt.Items["AssetMultiplier"] = asset.MultiplierPower;
                             opt.Items["AssetAccuracy"] = asset.Accuracy;
                         });
-
-                    await _payInternalClient.CreatePaymentTransactionAsync(createTransactionRequest);
-
+                    await _payInternalClient.RegisterEthereumInboundTransactionAsync(inboundTransactionRequest);
                     break;
 
-                // transfer from deposit contract
                 case SenderType.EthereumCore:
-
-                    var updateTransactionRequest = Mapper.Map<UpdateTransactionRequest>(transferEvent,
-                        opt =>
-                        {
-                            opt.Items["ConfirmationsToSucceed"] = _confirmationsToSucceed;
-                            opt.Items["AssetMultiplier"] = asset.MultiplierPower;
-                            opt.Items["AssetAccuracy"] = asset.Accuracy;
-                        });
-
-                    await _payInternalClient.UpdateTransactionAsync(updateTransactionRequest);
+                    switch (transferEvent.EventType)
+                    {
+                        case EventType.Started:
+                            var outboundTransactionRequest = Mapper.Map<RegisterOutboundTxModel>(
+                                transferEvent, opt =>
+                                {
+                                    opt.Items["AssetId"] = asset.DisplayId;
+                                    opt.Items["AssetMultiplier"] = asset.MultiplierPower;
+                                    opt.Items["AssetAccuracy"] = asset.Accuracy;
+                                });
+                            await _payInternalClient.RegisterEthereumOutboundTransactionAsync(
+                                outboundTransactionRequest);
+                            break;
+                        case EventType.Failed:
+                            await _payInternalClient.FailEthereumOutboundTransactionAsync(
+                                Mapper.Map<FailOutboundTxModel>(transferEvent));
+                            break;
+                        case EventType.Completed:
+                            await _payInternalClient.CompleteEthereumOutboundTransactionAsync(
+                                Mapper.Map<CompleteOutboundTxModel>(transferEvent, opt =>
+                                {
+                                    opt.Items["AssetMultiplier"] = asset.MultiplierPower;
+                                    opt.Items["AssetAccuracy"] = asset.Accuracy;
+                                }));
+                            break;
+                        case EventType.NotEnoughFunds:
+                            await _payInternalClient.FailEthereumOutboundTransactionAsync(
+                                Mapper.Map<NotEnoughFundsOutboundTxModel>(transferEvent));
+                            break;
+                        default: throw new UnexpectedEthereumEventTypeException(transferEvent.EventType);
+                    }
 
                     break;
 
                 default:
-                    throw new UnexpectedEthereumTransferType(transferEvent.SenderType);
+                    throw new UnexpectedEthereumTransferTypeException(transferEvent.SenderType);
             }
         }
     }

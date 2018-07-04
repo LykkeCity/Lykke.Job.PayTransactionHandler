@@ -60,29 +60,27 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
             {
                 await _ethereumTransferHandler.Handle(arg);
             }
-            catch (UnknownErc20TokenException tokenEx)
+            catch (UnknownErc20TokenException e)
             {
-                _log.WriteError(nameof(ProcessMessageAsync), new {tokenEx.TokenAddress}, tokenEx);
+                _log.WriteError(nameof(ProcessMessageAsync), new {e.TokenAddress}, e);
 
                 throw;
             }
-            catch (UnknownErc20AssetException assetEx)
+            catch (UnknownErc20AssetException e)
             {
-                _log.WriteError(nameof(ProcessMessageAsync), new {assetEx.Asset}, assetEx);
+                _log.WriteError(nameof(ProcessMessageAsync), new {e.Asset}, e);
 
                 throw;
             }
-            catch (UnexpectedEthereumTransferTypeException typeEx)
+            catch (UnexpectedEthereumTransferTypeException e)
             {
-                _log.WriteError(nameof(ProcessMessageAsync), new {transferType = typeEx.TransferType.ToString()},
-                    typeEx);
+                _log.WriteError(nameof(ProcessMessageAsync), new {transferType = e.TransferType.ToString()}, e);
 
                 throw;
             }
-            catch (UnexpectedEthereumEventTypeException eventTypeEx)
+            catch (UnexpectedEthereumEventTypeException e)
             {
-                _log.WriteError(nameof(ProcessMessageAsync), new {eventType = eventTypeEx.EventType.ToString()},
-                    eventTypeEx);
+                _log.WriteError(nameof(ProcessMessageAsync), new {eventType = e.EventType.ToString()}, e);
 
                 throw;
             }

@@ -1,6 +1,7 @@
 ﻿using System;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using Common;
 using Common.Log;
 using Lykke.Job.PayTransactionHandler.Core;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
@@ -69,19 +70,19 @@ namespace Lykke.Job.PayTransactionHandler.Modules
         private void RegisterPeriodicalHandlers(ContainerBuilder builder)
         {
             builder.RegisterType<WalletsScanHandler>()
-                .As<IStartable>()
+                .As<IStartable, IStopable>()
                 .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.WalletsScanPeriod))
                 .AutoActivate()
                 .SingleInstance();
 
             builder.RegisterType<TransactionsScanHandler>()
-                .As<IStartable>()
+                .As<IStartable, IStopable>()
                 .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.TransactionsScanPeriod))
                 .AutoActivate()
                 .SingleInstance();
 
             builder.RegisterType<CacheOutdateHandler>()
-                .As<IStartable>()
+                .As<IStartable, IStopable>()
                 .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.CacheExpirationHandlingPeriod))
                 .AutoActivate()
                 .SingleInstance();
@@ -90,19 +91,19 @@ namespace Lykke.Job.PayTransactionHandler.Modules
         private void RegisterRabbitMqSubscribers(ContainerBuilder builder)
         {
             builder.RegisterType<WalletEventsSubscriber>()
-                .As<IStartable>()
+                .As<IStartable, IStopable>()
                 .AutoActivate()
                 .SingleInstance()
                 .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.Rabbit));
 
             builder.RegisterType<TransactionEventsSubscriber>()
-                .As<IStartable>()
+                .As<IStartable, IStopable>()
                 .AutoActivate()
                 .SingleInstance()
                 .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.Rabbit));
 
             builder.RegisterType<EthereumEventsSubscriber>()
-                .As<IStartable>()
+                .As<IStartable, IStopable>()
                 .AutoActivate()
                 .SingleInstance()
                 .WithParameter(TypedParameter.From(_settings.PayTransactionHandlerJob.Rabbit));

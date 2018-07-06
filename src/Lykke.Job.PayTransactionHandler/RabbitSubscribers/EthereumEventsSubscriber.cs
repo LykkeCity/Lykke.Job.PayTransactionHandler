@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Threading.Tasks;
 using Autofac;
 using Common;
@@ -8,7 +9,9 @@ using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.Job.EthereumCore.Contracts.Events.LykkePay;
 using Lykke.Job.PayTransactionHandler.Core.Exceptions;
 using Lykke.Job.PayTransactionHandler.Core.Services;
+using Lykke.Job.PayTransactionHandler.ErrorHandling;
 using Lykke.RabbitMqBroker;
+using Lykke.Service.PayInternal.Client.Exceptions;
 
 namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 {
@@ -39,10 +42,14 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
             settings.MakeDurable();
 
+            var dlxErrorHandlingStrategy = new DeadQueueErrorHandlingStrategy(_log, settings);
+
             _subscriber = new RabbitMqSubscriber<TransferEvent>(settings,
-                    new ResilientErrorHandlingStrategy(_log, settings,
-                        retryTimeout: TimeSpan.FromSeconds(10),
-                        next: new DeadQueueErrorHandlingStrategy(_log, settings)))
+                    new EthereumEventsErrorHandlingStrategy(
+                        new ResilientErrorHandlingStrategy(_log, settings,
+                            retryTimeout: TimeSpan.FromSeconds(10),
+                            next: dlxErrorHandlingStrategy),
+                        dlxErrorHandlingStrategy))
                 .SetMessageDeserializer(new JsonMessageDeserializer<TransferEvent>())
                 .SetMessageReadStrategy(new MessageReadQueueStrategy())
                 .Subscribe(ProcessMessageAsync)
@@ -81,6 +88,16 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
             catch (UnexpectedEthereumEventTypeException e)
             {
                 _log.WriteError(nameof(ProcessMessageAsync), new {eventType = e.EventType.ToString()}, e);
+
+                throw;
+            }
+            catch (DefaultErrorResponseException e) when (e.StatusCode == HttpStatusCode.BadRequest)
+            {
+                _log.WriteError(nameof(ProcessMessageAsync), new
+                {
+                    message = e.Error?.ErrorMessage,
+                    errors = e.Error?.ModelErrors
+                }, e);
 
                 throw;
             }

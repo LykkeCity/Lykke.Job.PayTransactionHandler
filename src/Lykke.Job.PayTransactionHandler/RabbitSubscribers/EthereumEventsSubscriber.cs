@@ -12,6 +12,7 @@ using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Job.PayTransactionHandler.ErrorHandling;
 using Lykke.RabbitMqBroker;
 using Lykke.Service.PayInternal.Client.Exceptions;
+using Refit;
 
 namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 {
@@ -93,11 +94,14 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
             }
             catch (DefaultErrorResponseException e) when (e.StatusCode == HttpStatusCode.BadRequest)
             {
-                _log.WriteError(nameof(ProcessMessageAsync), new
+                if (e.InnerException is ApiException apiException)
                 {
-                    message = e.Error?.ErrorMessage,
-                    errors = e.Error?.ModelErrors
-                }, e);
+                    _log.WriteError(nameof(ProcessMessageAsync), new
+                    {
+                        message = e.Error?.ErrorMessage ?? apiException.Content,
+                        errors = e.Error?.ModelErrors
+                    }, e);
+                }
 
                 throw;
             }

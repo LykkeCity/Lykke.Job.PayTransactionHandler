@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Autofac;
-using Common.Log;
 using JetBrains.Annotations;
+using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Cqrs.Configuration;
 using Lykke.Job.PayTransactionHandler.Commands;
@@ -10,6 +10,7 @@ using Lykke.Job.PayTransactionHandler.Core.Settings;
 using Lykke.Job.PayTransactionHandler.Handlers;
 using Lykke.Job.PayTransactionHandler.Sagas;
 using Lykke.Messaging;
+using Lykke.Messaging.Contract;
 using Lykke.Messaging.RabbitMq;
 using Lykke.Service.Operations.Contracts.Events;
 using Lykke.SettingsReader;
@@ -19,14 +20,11 @@ namespace Lykke.Job.PayTransactionHandler.Modules
     public class CqrsModule : Module
     {
         private readonly AppSettings _settings;
-        private readonly ILog _log;
 
         public CqrsModule(
-            [NotNull] IReloadingManager<AppSettings> settingsManager, 
-            [NotNull] ILog log)
+            [NotNull] IReloadingManager<AppSettings> settingsManager)
         {
             _settings = settingsManager.CurrentValue ?? throw new ArgumentNullException(nameof(settingsManager.CurrentValue));
-            _log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
         protected override void Load(ContainerBuilder builder)
@@ -40,15 +38,16 @@ namespace Lykke.Job.PayTransactionHandler.Modules
             var rabbitMqSettings = new RabbitMQ.Client.ConnectionFactory
                 {Uri = _settings.Transports.ClientRabbitMqConnectionString};
 
-            var messagingEngine = new MessagingEngine(_log,
-                new TransportResolver(new Dictionary<string, TransportInfo>
-                {
+            builder.Register(c => new MessagingEngine(c.Resolve<ILogFactory>(),
+                    new TransportResolver(new Dictionary<string, TransportInfo>
                     {
-                        "ClientRabbitMq",
-                        new TransportInfo(rabbitMqSettings.Endpoint.ToString(), rabbitMqSettings.UserName,
-                            rabbitMqSettings.Password, "None", "RabbitMq")
-                    }
-                }), new RabbitMqTransportFactory());
+                        {
+                            "ClientRabbitMq",
+                            new TransportInfo(rabbitMqSettings.Endpoint.ToString(), rabbitMqSettings.UserName,
+                                rabbitMqSettings.Password, "None", "RabbitMq")
+                        }
+                    }), new RabbitMqTransportFactory(c.Resolve<ILogFactory>())))
+                .As<IMessagingEngine>();
 
             var clientEndpointResolver = new RabbitMqConventionEndpointResolver("ClientRabbitMq", "messagepack",
                 environment: "lykke", exclusiveQueuePostfix: "k8s");
@@ -60,9 +59,9 @@ namespace Lykke.Job.PayTransactionHandler.Modules
                 .SingleInstance();
 
             builder.Register(ctx => new CqrsEngine(
-                    _log,
+                    ctx.Resolve<ILogFactory>(),
                     ctx.Resolve<IDependencyResolver>(),
-                    messagingEngine,
+                    ctx.Resolve<IMessagingEngine>(),
                     new DefaultEndpointProvider(),
                     true,
                     Register.DefaultEndpointResolver(clientEndpointResolver),

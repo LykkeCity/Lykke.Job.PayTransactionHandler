@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using AutoMapper;
 using Common.Log;
+using JetBrains.Annotations;
+using Lykke.Common.Log;
 using Lykke.Job.EthereumCore.Contracts.Enums.LykkePay;
 using Lykke.Job.EthereumCore.Contracts.Events.LykkePay;
 using Lykke.Job.PayTransactionHandler.Core.Exceptions;
@@ -20,14 +22,13 @@ namespace Lykke.Job.PayTransactionHandler.Services.Ethereum
         private readonly IAssetsService _assetsService;
 
         public EthereumTransferHandler(
-            ILog log,
-            IPayInternalClient payInternalClient,
-            IAssetsService assetsService)
+            [NotNull] ILogFactory logFactory,
+            [NotNull] IPayInternalClient payInternalClient,
+            [NotNull] IAssetsService assetsService)
         {
             _payInternalClient = payInternalClient ?? throw new ArgumentNullException(nameof(payInternalClient));
             _assetsService = assetsService;
-            _log = log?.CreateComponentScope(nameof(EthereumTransferHandler)) ??
-                   throw new ArgumentNullException(nameof(EthereumTransferHandler));
+            _log = logFactory.CreateLog(this);
         }
 
         public async Task Handle(TransferEvent transferEvent)

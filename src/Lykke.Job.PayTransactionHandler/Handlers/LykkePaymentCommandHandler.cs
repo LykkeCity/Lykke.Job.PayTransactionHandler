@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Common.Log;
 using JetBrains.Annotations;
+using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Job.PayTransactionHandler.Commands;
 using Lykke.Job.PayTransactionHandler.Core.Exceptions;
@@ -22,12 +23,12 @@ namespace Lykke.Job.PayTransactionHandler.Handlers
         private readonly int _confirmationsToSucceed;
 
         public LykkePaymentCommandHandler(
-            [NotNull] ILog log,
+            [NotNull] ILogFactory logFactory,
             [NotNull] IPayInternalClient payInternalClient,
             [NotNull] IOperationsClient operationsClient,
             int confirmationsToSucceed)
         {
-            _log = log ?? throw new ArgumentNullException(nameof(log));
+            _log = logFactory.CreateLog(this);
             _payInternalClient = payInternalClient ?? throw new ArgumentNullException(nameof(payInternalClient));
             _operationsClient = operationsClient ?? throw new ArgumentNullException(nameof(operationsClient));
             _confirmationsToSucceed = confirmationsToSucceed;
@@ -36,7 +37,7 @@ namespace Lykke.Job.PayTransactionHandler.Handlers
         public async Task<CommandHandlingResult> Handle(CreateLykkePaymentTransactionCommand cmd,
             IEventPublisher eventPublisher)
         {
-            _log.WriteInfo(nameof(CreateLykkePaymentTransactionCommand), cmd, string.Empty);
+            _log.Info("Handle new Lykke payment command", cmd);
 
             OperationModel operation = await _operationsClient.Get(cmd.OperationId);
 
@@ -67,11 +68,11 @@ namespace Lykke.Job.PayTransactionHandler.Handlers
             {
                 await _payInternalClient.CreateLykkePaymentTransactionAsync(request);
             }
-            catch (DefaultErrorResponseException defaultEx)
+            catch (DefaultErrorResponseException e)
             {
-                if (defaultEx.StatusCode.Is4xx())
+                if (e.StatusCode.Is4xx())
                 {
-                    _log.WriteError(nameof(CreateLykkePaymentTransactionCommand), request, defaultEx);
+                    _log.Error(e, context: request);
 
                     return CommandHandlingResult.Ok();
                 }

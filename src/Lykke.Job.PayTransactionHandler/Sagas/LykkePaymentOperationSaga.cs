@@ -1,7 +1,6 @@
-﻿using System;
-using Common;
-using Common.Log;
+﻿using Common.Log;
 using JetBrains.Annotations;
+using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Job.PayTransactionHandler.Commands;
 using Lykke.Service.Operations.Contracts.Events;
@@ -12,14 +11,15 @@ namespace Lykke.Job.PayTransactionHandler.Sagas
     {
         private readonly ILog _log;
 
-        public LykkePaymentOperationSaga([NotNull] ILog log)
+        public LykkePaymentOperationSaga(
+            [NotNull] ILogFactory logFactory)
         {
-            _log = log ?? throw new ArgumentNullException(nameof(log));
+            _log = logFactory.CreateLog(this);
         }
 
         public void Handle(OperationCompletedEvent evt, ICommandSender sender)
         {
-            _log.WriteInfo(nameof(OperationCompletedEvent), evt.ToJson(), string.Empty);
+            _log.Info("Handle Lykke payment completed event", evt);
 
             sender.SendCommand(new CreateLykkePaymentTransactionCommand
             {

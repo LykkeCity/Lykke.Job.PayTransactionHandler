@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Common;
 using Common.Log;
+using JetBrains.Annotations;
+using Lykke.Common.Log;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 
 namespace Lykke.Job.PayTransactionHandler.Services
@@ -17,9 +19,11 @@ namespace Lykke.Job.PayTransactionHandler.Services
         private readonly ILog _log;
         private readonly IEnumerable<IStopable> _items;
 
-        public ShutdownManager(ILog log, IEnumerable<IStopable> items)
+        public ShutdownManager(
+            [NotNull] ILogFactory logFactory, 
+            [NotNull] IEnumerable<IStopable> items)
         {
-            _log = log;
+            _log = logFactory.CreateLog(this);
             _items = items;
         }
 
@@ -34,7 +38,7 @@ namespace Lykke.Job.PayTransactionHandler.Services
                 }
                 catch (Exception ex)
                 {
-                    _log.WriteWarning(nameof(StopAsync), null, $"Unable to stop {item.GetType().Name}", ex);
+                    _log.Warning($"Unable to stop {item.GetType().Name}", ex);
                 }
             }
 

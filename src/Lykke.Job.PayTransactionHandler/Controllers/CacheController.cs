@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Common.Log;
+using JetBrains.Annotations;
+using Lykke.Common.Log;
 using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
@@ -19,15 +21,15 @@ namespace Lykke.Job.PayTransactionHandler.Controllers
         private readonly ILog _log;
 
         public CacheController(
-            ICacheMaintainer<WalletState> walletsStateCacheManager,
-            ICacheMaintainer<TransactionState> transactionStateCacheManager,
-            ILog log)
+            [NotNull] ICacheMaintainer<WalletState> walletsStateCacheManager,
+            [NotNull] ICacheMaintainer<TransactionState> transactionStateCacheManager,
+            [NotNull] ILogFactory logFactory)
         {
             _walletsStateCacheManager = walletsStateCacheManager ??
                                         throw new ArgumentNullException(nameof(walletsStateCacheManager));
             _transactionStateCacheManager = transactionStateCacheManager ??
                                             throw new ArgumentNullException(nameof(transactionStateCacheManager));
-            _log = log ?? throw new ArgumentNullException(nameof(log));
+            _log = logFactory.CreateLog(this);
         }
 
         [HttpGet]
@@ -43,7 +45,7 @@ namespace Lykke.Job.PayTransactionHandler.Controllers
             }
             catch (Exception ex)
             {
-                await _log.WriteErrorAsync(nameof(CacheController), nameof(GetWalletsCacheState), ex);
+                _log.Error(ex);
             }
 
             return StatusCode((int) HttpStatusCode.InternalServerError);
@@ -62,7 +64,7 @@ namespace Lykke.Job.PayTransactionHandler.Controllers
             }
             catch (Exception ex)
             {
-                await _log.WriteErrorAsync(nameof(CacheController), nameof(GetTransactionsCacheState), ex);
+                _log.Error(ex);
             }
 
             return StatusCode((int) HttpStatusCode.InternalServerError);

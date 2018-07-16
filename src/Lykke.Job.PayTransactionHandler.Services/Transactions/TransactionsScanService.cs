@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Common;
 using Common.Log;
+using Lykke.Common.Log;
 using Lykke.Job.PayTransactionHandler.Core;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.DiffService;
@@ -30,13 +30,13 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             QBitNinjaClient qBitNinjaClient,
             IDiffService<BcnTransaction> diffService,
             IPayInternalClient payInternalClient,
-            ILog log)
+            ILogFactory logFactory)
         {
             _cacheMaintainer = cacheMaintainer ?? throw new ArgumentNullException(nameof(cacheMaintainer));
             _qBitNinjaClient = qBitNinjaClient ?? throw new ArgumentNullException(nameof(qBitNinjaClient));
             _diffService = diffService ?? throw new ArgumentNullException(nameof(diffService));
             _payInternalClient = payInternalClient ?? throw new ArgumentNullException(nameof(payInternalClient));
-            _log = log?.CreateComponentScope(nameof(TransactionsScanService)) ?? throw new ArgumentNullException(nameof(log));
+            _log = logFactory.CreateLog(this);
         }
 
         public async Task ExecuteAsync()
@@ -58,7 +58,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
                 }
                 catch (Exception ex)
                 {
-                    await _log.WriteErrorAsync("Getting transaction from ninja", cacheTxState.ToJson(), ex);
+                    _log.Error(ex, "Getting transaction from ninja", cacheTxState);
 
                     continue;
                 }
@@ -78,8 +78,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
                     {
                         case DiffState.New:
 
-                            await _log.WriteWarningAsync(nameof(TransactionsScanService), nameof(ExecuteAsync),
-                                tx?.ToJson(), "New transactions are not supported by watcher");
+                            _log.Warning("New transactions are not supported by watcher", context: tx);
 
                             break;
 
@@ -95,8 +94,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
                             }
                             catch (Exception ex)
                             {
-                                await _log.WriteErrorAsync(nameof(TransactionsScanService), nameof(ExecuteAsync),
-                                    updateRequest?.ToJson(), ex);
+                                _log.Error(ex, context: updateRequest);
                             }
 
                             break;
@@ -114,7 +112,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
                     catch (Exception ex)
                     {
 
-                        await _log.WriteErrorAsync("Updating transaction cache", cacheTxState.ToJson(), ex);
+                        _log.Error(ex, "Updating transaction cache", cacheTxState);
 
                         continue;
                     }

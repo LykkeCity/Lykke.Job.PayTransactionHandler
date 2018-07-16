@@ -2,12 +2,10 @@
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Common;
-using Common.Log;
 using Lykke.Job.PayTransactionHandler.Core;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Job.PayTransactionHandler.Services;
-using Lykke.SettingsReader;
 using Lykke.Job.PayTransactionHandler.PeriodicalHandlers;
 using Lykke.Job.PayTransactionHandler.RabbitSubscribers;
 using Lykke.Job.PayTransactionHandler.Core.Settings;
@@ -21,29 +19,23 @@ using Lykke.Job.PayTransactionHandler.Services.Transactions;
 using Lykke.Job.PayTransactionHandler.Services.Wallets;
 using Lykke.Service.Assets.Client;
 using Lykke.Service.Operations.Client;
+using Lykke.SettingsReader;
 
 namespace Lykke.Job.PayTransactionHandler.Modules
 {
     public class JobModule : Module
     {
         private readonly AppSettings _settings;
-        private readonly ILog _log;
         private readonly IServiceCollection _services;
 
-        public JobModule(IReloadingManager<AppSettings> settingsManager, ILog log)
+        public JobModule(IReloadingManager<AppSettings> settingsManager)
         {
             _settings = settingsManager.CurrentValue;
-            _log = log;
-
             _services = new ServiceCollection();
         }
 
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterInstance(_log)
-                .As<ILog>()
-                .SingleInstance();
-
             builder.RegisterType<HealthService>()
                 .As<IHealthService>()
                 .SingleInstance();

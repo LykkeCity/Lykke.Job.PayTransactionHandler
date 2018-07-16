@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
-using Autofac;
 using Common.Log;
+using Lykke.Common.Log;
 using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
@@ -16,26 +16,26 @@ namespace Lykke.Job.PayTransactionHandler.Services
         public StartupManager(
             ICacheMaintainer<WalletState> walletsStateCacheWarmer,
             ICacheMaintainer<TransactionState> transactionsStateCacheWarmer,
-            ILog log)
+            ILogFactory logFactory)
         {
             _walletsStateCacheWarmer = walletsStateCacheWarmer;
             _transactionsStateCacheWarmer = transactionsStateCacheWarmer;
-            _log = log;
+            _log = logFactory.CreateLog(this);
         }
 
         public async Task StartAsync()
         {
-            await _log.WriteInfoAsync(nameof(StartupManager), nameof(StartAsync), "Warming up wallets cache ...");
+            _log.Info("Warming up wallets cache ...");
 
             await _walletsStateCacheWarmer.WarmUpAsync();
 
-            await _log.WriteInfoAsync(nameof(StartupManager), nameof(StartAsync), "Done.");
+            _log.Info("Done.");
 
-            await _log.WriteInfoAsync(nameof(StartupManager), nameof(StartAsync), "Warming up transactions cache ...");
+            _log.Info("Warming up transactions cache ...");
 
             await _transactionsStateCacheWarmer.WarmUpAsync();
 
-            await _log.WriteInfoAsync(nameof(StartupManager), nameof(StartAsync), "Done.");
+            _log.Info("Done.");
         }
     }
 }

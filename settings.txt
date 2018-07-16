@@ -7,7 +7,7 @@
     "MonitoringServiceUrl": "${MonitoringServiceUrl}"
   },
   "NinjaServiceClient": {
-    "ServiceUrl": "http://104.40.159.95/"
+    "ServiceUrl": "{NinjaServiceUrl}"
   },
   "OperationsServiceClient": {
     "ServiceUrl": "http://operations.lykke-service.svc.cluster.local"
@@ -44,9 +44,5 @@
       "QueueName": "slack-notifications"
     },
     "ThrottlingLimitSeconds": "${SlackNotificationsThrottlingLimit}"
-  },
-  "Transports": {
-    "ClientRabbitMqConnectionString": "amqp://lykke.history:lykke.history@rabbit-main.rabbits.svc.cluster.local:5672",
-    "MeRabbitMqConnectionString": "amqp://lykke.history:lykke.history@rabbit-me.lykke-me.svc.cluster.local:5672"
   }
 }

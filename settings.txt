@@ -44,5 +44,9 @@
       "QueueName": "slack-notifications"
     },
     "ThrottlingLimitSeconds": "${SlackNotificationsThrottlingLimit}"
-  }
+  },
+  "Transports": {
+	"ClientRabbitMqConnectionString": "${ClientRabbitMqConnectionString}:[RabbitMq]",
+	"MeRabbitMqConnectionString": "${GeneralRabbitMqConnectionString}:[RabbitMq]"
+}
 }

@@ -1,41 +1,41 @@
 {
   "AssetsServiceClient": {
-    "ServiceUrl": "http://assets.lykke-service.svc.cluster.local",
-    "ExpirationPeriod": "00:05:00"
+    "ServiceUrl": "${AssetsServiceUrl}",
+    "ExpirationPeriod": "${LP-AssetsExpirationPeriod}"
   },
   "MonitoringServiceClient": {
     "MonitoringServiceUrl": "${MonitoringServiceUrl}"
   },
   "NinjaServiceClient": {
-    "ServiceUrl": "{NinjaServiceUrl}"
+    "ServiceUrl": "${NinjaServiceUrl}"
   },
   "OperationsServiceClient": {
-    "ServiceUrl": "http://operations.lykke-service.svc.cluster.local"
+    "ServiceUrl": "${OperationsServiceUrl}"
   },
   "PayInternalServiceClient": {
-    "ServiceUrl": "http://pay-internal.lykke-service.svc.cluster.local"
+    "ServiceUrl": "${PayInternalServiceUrl}"
   },
   "PayTransactionHandlerJob": {
     "Db": {
-      "LogsConnString": "{LogsConnString}:[AzureTableStorage]"
+      "LogsConnString": "${LogsConnString}:[AzureTableStorage]"
     },
     "Rabbit": {
-      "ConnectionString": "{LykkePayRabbitConnString}:[RabbitMq]",
+      "ConnectionString": "${LP-RabbitConnString}:[RabbitMq]",
       "WalletsExchangeName": "pay.wallets",
       "TransactionsExchangeName": "pay.transactionevents",
       "EthereumEventsExchangeName": "ethereum.core.lykkepay"
     },
-    "WalletsScanPeriod": "00:00:10",
-    "TransactionsScanPeriod": "00:00:10",
-    "CacheExpirationHandlingPeriod": "00:01:00",
+    "WalletsScanPeriod": "${LP-TransactionHandler-WalletsScanPeriod}",
+    "TransactionsScanPeriod": "${LP-TransactionHandler-TransactionsScanPeriod}",
+    "CacheExpirationHandlingPeriod": "${LP-TransactionHandler-CacheExpirationHandlingPeriod}",
     "Blockchain": {
-      "ConfirmationsToSucceed": 3
+      "ConfirmationsToSucceed": ${LP-TransactionHandler-ConfirmationsToSucceed}
     },
     "Bitcoin": {
-      "Network": "TestNet"
+      "Network": "${LP-TransactionHandler-BitcoinNetwork}"
     },
     "Cqrs": {
-      "RetryDelayInMilliseconds": 3000
+      "RetryDelayInMilliseconds": ${LP-TransactionHandler-CqrsRetryDelay}
     }
   },
   "SlackNotifications": {

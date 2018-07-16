@@ -1,7 +1,7 @@
 {
   "AssetsServiceClient": {
     "ServiceUrl": "${AssetsServiceUrl}",
-    "ExpirationPeriod": "${LP-AssetsExpirationPeriod}"
+    "ExpirationPeriod": "${AssetsServiceExpirationPeriod}"
   },
   "MonitoringServiceClient": {
     "MonitoringServiceUrl": "${MonitoringServiceUrl}"

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Common.Log;
+using Lykke.Common.Log;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Service.PayInternal.Client;
@@ -24,11 +25,11 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
         public WalletsStateCacheMaintainer(
             IMemoryCache cache,
             IPayInternalClient payInternalClient,
-            ILog log)
+            ILogFactory logFactory)
         {
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _payInternalClient = payInternalClient ?? throw new ArgumentNullException(nameof(payInternalClient));
-            _log = log ?? throw new ArgumentNullException(nameof(log));
+            _log = logFactory.CreateLog(this);
         }
 
         public async Task WarmUpAsync()
@@ -58,8 +59,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
                 await _cache.RemoveWithPartitionAsync(CachePartitionName, walletState.Address);
 
-                await _log.WriteInfoAsync(nameof(WalletsStateCacheMaintainer), nameof(WipeAsync),
-                    $"Cleared wallet {walletState.Address} from cache with dudate = {walletState.DueDate}");
+                _log.Info($"Cleared wallet {walletState.Address} from cache with dudate = {walletState.DueDate}");
             }
         }
 

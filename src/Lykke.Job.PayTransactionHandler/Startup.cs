@@ -3,17 +3,16 @@ using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
-using AzureStorage.Tables;
 using Common.Log;
 using Lykke.Common.Api.Contract.Responses;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
+using Lykke.Common.Log;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Job.PayTransactionHandler.Core.Settings;
 using Lykke.Job.PayTransactionHandler.Modules;
 using Lykke.Logs;
 using Lykke.SettingsReader;
-using Lykke.SlackNotification.AzureQueue;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -27,6 +26,7 @@ namespace Lykke.Job.PayTransactionHandler
         public IContainer ApplicationContainer { get; private set; }
         public IConfigurationRoot Configuration { get; }
         public ILog Log { get; private set; }
+        private IHealthNotifier HealthNotifier { get; set; }
 
         public Startup(IHostingEnvironment env)
         {
@@ -55,11 +55,16 @@ namespace Lykke.Job.PayTransactionHandler
                 });
 
                 var builder = new ContainerBuilder();
+
                 var appSettings = Configuration.LoadSettings<AppSettings>();
 
-                Log = CreateLogWithSlack(services, appSettings);
+                services.AddLykkeLogging(
+                    appSettings.ConnectionString(x => x.PayTransactionHandlerJob.Db.LogsConnString),
+                    "PayTransactionHandlerLog",
+                    appSettings.CurrentValue.SlackNotifications.AzureQueue.ConnectionString,
+                    appSettings.CurrentValue.SlackNotifications.AzureQueue.QueueName);
 
-                builder.RegisterModule(new JobModule(appSettings.CurrentValue, appSettings.Nested(x => x.PayTransactionHandlerJob.Db), Log));
+                builder.RegisterModule(new JobModule(appSettings.CurrentValue));
 
                 builder.Populate(services);
 
@@ -72,11 +77,15 @@ namespace Lykke.Job.PayTransactionHandler
 
                 ApplicationContainer = builder.Build();
 
+                Log = ApplicationContainer.Resolve<ILogFactory>().CreateLog(this);
+
+                HealthNotifier = ApplicationContainer.Resolve<IHealthNotifier>();
+
                 return new AutofacServiceProvider(ApplicationContainer);
             }
             catch (Exception ex)
             {
-                Log?.WriteFatalErrorAsync(nameof(Startup), nameof(ConfigureServices), "", ex).GetAwaiter().GetResult();
+                Log?.Critical(ex);
                 throw;
             }
         }
@@ -90,13 +99,15 @@ namespace Lykke.Job.PayTransactionHandler
                     app.UseDeveloperExceptionPage();
                 }
 
-                app.UseLykkeMiddleware("PayTransactionHandler", ex => new ErrorResponse {ErrorMessage = "Technical problem"});
+                app.UseLykkeMiddleware(ex => new ErrorResponse {ErrorMessage = "Technical problem"});
 
                 app.UseMvc();
+
                 app.UseSwagger(c =>
                 {
                     c.PreSerializeFilters.Add((swagger, httpReq) => swagger.Host = httpReq.Host.Value);
                 });
+
                 app.UseSwaggerUI(x =>
                 {
                     x.RoutePrefix = "swagger/ui";
@@ -106,11 +117,11 @@ namespace Lykke.Job.PayTransactionHandler
 
                 appLifetime.ApplicationStarted.Register(() => StartApplication().GetAwaiter().GetResult());
                 appLifetime.ApplicationStopping.Register(() => StopApplication().GetAwaiter().GetResult());
-                appLifetime.ApplicationStopped.Register(() => CleanUp().GetAwaiter().GetResult());
+                appLifetime.ApplicationStopped.Register(CleanUp);
             }
             catch (Exception ex)
             {
-                Log?.WriteFatalErrorAsync(nameof(Startup), nameof(Configure), "", ex).GetAwaiter().GetResult();
+                Log?.Critical(ex);
                 throw;
             }
         }
@@ -122,11 +133,12 @@ namespace Lykke.Job.PayTransactionHandler
                 // NOTE: Job not yet recieve and process IsAlive requests here
 
                 await ApplicationContainer.Resolve<IStartupManager>().StartAsync();
-                await Log.WriteMonitorAsync("", Program.EnvInfo, "Started");
+
+                HealthNotifier.Notify("Started");
             }
             catch (Exception ex)
             {
-                await Log.WriteFatalErrorAsync(nameof(Startup), nameof(StartApplication), "", ex);
+                Log.Critical(ex);
                 throw;
             }
         }
@@ -141,81 +153,27 @@ namespace Lykke.Job.PayTransactionHandler
             }
             catch (Exception ex)
             {
-                if (Log != null)
-                {
-                    await Log.WriteFatalErrorAsync(nameof(Startup), nameof(StopApplication), "", ex);
-                }
+                Log?.Critical(ex);
                 throw;
             }
         }
 
-        private async Task CleanUp()
+        private void CleanUp()
         {
             try
             {
                 // NOTE: Job can't recieve and process IsAlive requests here, so you can destroy all resources
-                
-                if (Log != null)
-                {
-                    await Log.WriteMonitorAsync("", Program.EnvInfo, "Terminating");
-                }
-                
+
+                HealthNotifier?.Notify("Terminating");
+
                 ApplicationContainer.Dispose();
             }
             catch (Exception ex)
             {
-                if (Log != null)
-                {
-                    await Log.WriteFatalErrorAsync(nameof(Startup), nameof(CleanUp), "", ex);
-                    (Log as IDisposable)?.Dispose();
-                }
+                Log?.Critical(nameof(CleanUp), ex);
+                (Log as IDisposable)?.Dispose();
                 throw;
             }
-        }
-
-        private static ILog CreateLogWithSlack(IServiceCollection services, IReloadingManager<AppSettings> settings)
-        {
-            var consoleLogger = new LogToConsole();
-            var aggregateLogger = new AggregateLogger();
-
-            aggregateLogger.AddLog(consoleLogger);
-
-            var dbLogConnectionStringManager = settings.Nested(x => x.PayTransactionHandlerJob.Db.LogsConnString);
-            var dbLogConnectionString = dbLogConnectionStringManager.CurrentValue;
-
-            if (string.IsNullOrEmpty(dbLogConnectionString))
-            {
-                consoleLogger.WriteWarningAsync(nameof(Startup), nameof(CreateLogWithSlack), "Table loggger is not inited").Wait();
-                return aggregateLogger;
-            }
-
-            if (dbLogConnectionString.StartsWith("${") && dbLogConnectionString.EndsWith("}"))
-                throw new InvalidOperationException($"LogsConnString {dbLogConnectionString} is not filled in settings");
-
-            var persistenceManager = new LykkeLogToAzureStoragePersistenceManager(
-                AzureTableStorage<LogEntity>.Create(dbLogConnectionStringManager, "PayTransactionHandlerLog", consoleLogger),
-                consoleLogger);
-
-            // Creating slack notification service, which logs own azure queue processing messages to aggregate log
-            var slackService = services.UseSlackNotificationsSenderViaAzureQueue(new AzureQueueIntegration.AzureQueueSettings
-            {
-                ConnectionString = settings.CurrentValue.SlackNotifications.AzureQueue.ConnectionString,
-                QueueName = settings.CurrentValue.SlackNotifications.AzureQueue.QueueName
-            }, aggregateLogger);
-
-            var slackNotificationsManager = new LykkeLogToAzureSlackNotificationsManager(slackService, consoleLogger);
-
-            // Creating azure storage logger, which logs own messages to concole log
-            var azureStorageLogger = new LykkeLogToAzureStorage(
-                persistenceManager,
-                slackNotificationsManager,
-                consoleLogger);
-
-            azureStorageLogger.Start();
-
-            aggregateLogger.AddLog(azureStorageLogger);
-
-            return aggregateLogger;
         }
     }
 }

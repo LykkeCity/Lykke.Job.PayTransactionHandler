@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Autofac;
 using Common;
 using Common.Log;
+using JetBrains.Annotations;
+using Lykke.Common.Log;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
@@ -18,13 +20,18 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
     public class WalletEventsSubscriber : IStartable, IStopable
     {
         private readonly ILog _log;
+        private readonly ILogFactory _logFactory;
         private readonly RabbitMqSettings _settings;
         private RabbitMqSubscriber<NewWalletMessage> _subscriber;
         private readonly ICacheMaintainer<WalletState> _walletsCache;
 
-        public WalletEventsSubscriber(ILog log, RabbitMqSettings settings, ICacheMaintainer<WalletState> walletsCache)
+        public WalletEventsSubscriber(
+            [NotNull] ILogFactory logFactory, 
+            [NotNull] RabbitMqSettings settings, 
+            [NotNull] ICacheMaintainer<WalletState> walletsCache)
         {
-            _log = log;
+            _log = logFactory.CreateLog(this);
+            _logFactory = logFactory;
             _settings = settings;
             _walletsCache = walletsCache;
         }
@@ -36,22 +43,20 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
             settings.MakeDurable();
 
-            _subscriber = new RabbitMqSubscriber<NewWalletMessage>(settings,
-                    new ResilientErrorHandlingStrategy(_log, settings,
+            _subscriber = new RabbitMqSubscriber<NewWalletMessage>(_logFactory, settings,
+                    new ResilientErrorHandlingStrategy(_logFactory, settings,
                         retryTimeout: TimeSpan.FromSeconds(10),
-                        next: new DeadQueueErrorHandlingStrategy(_log, settings)))
+                        next: new DeadQueueErrorHandlingStrategy(_logFactory, settings)))
                 .SetMessageDeserializer(new JsonMessageDeserializer<NewWalletMessage>())
                 .SetMessageReadStrategy(new MessageReadQueueStrategy())
                 .Subscribe(ProcessMessageAsync)
                 .CreateDefaultBinding()
-                .SetLogger(_log)
                 .Start();
         }
 
         private async Task ProcessMessageAsync(NewWalletMessage arg)
         {
-            await _log.WriteInfoAsync(nameof(WalletEventsSubscriber), nameof(ProcessMessageAsync), arg.ToJson(),
-                "Got a message about new wallet");
+            _log.Info("Got a message about new wallet", arg);
 
             await _walletsCache.SetItemAsync(new WalletState
             {

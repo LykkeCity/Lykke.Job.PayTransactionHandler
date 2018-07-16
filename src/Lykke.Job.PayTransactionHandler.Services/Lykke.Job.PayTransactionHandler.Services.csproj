@@ -8,7 +8,7 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="7.0.1" />
     <PackageReference Include="Lykke.Common" Version="7.0.1" />
-    <PackageReference Include="Lykke.Service.Assets.Client" Version="4.0.1" />
+    <PackageReference Include="Lykke.Service.Assets.Client" Version="4.2.0" />
     <PackageReference Include="QBitNinja.Client" Version="1.0.3.47" />
   </ItemGroup>
 

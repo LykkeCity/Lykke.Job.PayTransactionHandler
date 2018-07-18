@@ -39,7 +39,7 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
         public void Start()
         {
             var settings = RabbitMqSubscriptionSettings
-                .CreateForSubscriber(_settings.ConnectionString, _settings.WalletsExchangeName, "paytransactionhandler");
+                .CreateForSubscriber(_settings.LykkePayConnectionString, _settings.WalletsExchangeName, "paytransactionhandler");
 
             settings.MakeDurable();
 

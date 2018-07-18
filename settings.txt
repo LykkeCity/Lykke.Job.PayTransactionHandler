@@ -20,7 +20,8 @@
       "LogsConnString": "${LogsConnString}:[AzureTableStorage]"
     },
     "Rabbit": {
-      "ConnectionString": "${LP-RabbitConnString}:[RabbitMq]",
+      "EthereumConnectionString": "${LP-RabbitConnString}:[RabbitMq]",
+      "LykkePayConnectionString": "${LP-RabbitConnString}:[RabbitMq]",
       "WalletsExchangeName": "pay.wallets",
       "TransactionsExchangeName": "pay.transactionevents",
       "EthereumEventsExchangeName": "ethereum.core.lykkepay"

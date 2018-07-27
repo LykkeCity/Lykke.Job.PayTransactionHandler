@@ -25,6 +25,7 @@ namespace Lykke.Job.PayTransactionHandler.ErrorHandling
             try
             {
                 handler();
+                ma.Accept();    
             }
             catch (DefaultErrorResponseException e) when (e.StatusCode == HttpStatusCode.BadRequest)
             {

@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Common;
 using Common.Log;
+using Lykke.Common.Log;
 using Lykke.Job.PayTransactionHandler.Core;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 
@@ -15,11 +16,10 @@ namespace Lykke.Job.PayTransactionHandler.PeriodicalHandlers
         public TransactionsScanHandler(
             IBlockchainScanerProvider scanServiceProvider,
             TimeSpan period,
-            ILog log) :
-            base(nameof(TransactionsScanHandler), (int)period.TotalMilliseconds, log)
+            ILogFactory logFactory) : base(period, logFactory)
         {
             _scanServiceProvider = scanServiceProvider ?? throw new ArgumentNullException(nameof(scanServiceProvider));
-            _log = log ?? throw new ArgumentNullException(nameof(log));
+            _log = logFactory.CreateLog(this);
         }
 
         public override async Task Execute()

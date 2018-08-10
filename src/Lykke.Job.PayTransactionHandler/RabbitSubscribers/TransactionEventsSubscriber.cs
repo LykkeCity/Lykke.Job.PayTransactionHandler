@@ -3,6 +3,9 @@ using System.Threading.Tasks;
 using Autofac;
 using Common;
 using Common.Log;
+using JetBrains.Annotations;
+using Lykke.Common.Log;
+using Lykke.Job.PayTransactionHandler.Core;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
@@ -17,13 +20,18 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
     public class TransactionEventsSubscriber: IStartable, IStopable
     {
         private readonly ILog _log;
+        private readonly ILogFactory _logFactory;
         private readonly RabbitMqSettings _settings;
         private RabbitMqSubscriber<NewTransactionMessage> _subscriber;
         private readonly ICacheMaintainer<TransactionState> _transactionsCache;
 
-        public TransactionEventsSubscriber(ILog log, RabbitMqSettings settings, ICacheMaintainer<TransactionState> transactionsCache)
+        public TransactionEventsSubscriber(
+            [NotNull] ILogFactory logFactory,
+            [NotNull] RabbitMqSettings settings, 
+            [NotNull] ICacheMaintainer<TransactionState> transactionsCache)
         {
-            _log = log;
+            _log = logFactory.CreateLog(this);
+            _logFactory = logFactory;
             _settings = settings;
             _transactionsCache = transactionsCache;
         }
@@ -35,22 +43,20 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
             settings.MakeDurable();
 
-            _subscriber = new RabbitMqSubscriber<NewTransactionMessage>(settings,
-                    new ResilientErrorHandlingStrategy(_log, settings,
+            _subscriber = new RabbitMqSubscriber<NewTransactionMessage>(_logFactory, settings,
+                    new ResilientErrorHandlingStrategy(_logFactory, settings,
                         retryTimeout: TimeSpan.FromSeconds(10),
-                        next: new DeadQueueErrorHandlingStrategy(_log, settings)))
+                        next: new DeadQueueErrorHandlingStrategy(_logFactory, settings)))
                 .SetMessageDeserializer(new JsonMessageDeserializer<NewTransactionMessage>())
                 .SetMessageReadStrategy(new MessageReadQueueStrategy())
                 .Subscribe(ProcessMessageAsync)
                 .CreateDefaultBinding()
-                .SetLogger(_log)
                 .Start();
         }
 
         private async Task ProcessMessageAsync(NewTransactionMessage arg)
         {
-            await _log.WriteInfoAsync(nameof(TransactionEventsSubscriber), nameof(ProcessMessageAsync), arg.ToJson(),
-                "Got a message about new transaction");
+            _log.Info("Got a message about new transaction", arg.ToDetails());
 
             await _transactionsCache.SetItemAsync(new TransactionState
             {

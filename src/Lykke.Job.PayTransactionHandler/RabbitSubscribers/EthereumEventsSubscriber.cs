@@ -4,9 +4,12 @@ using System.Threading.Tasks;
 using Autofac;
 using Common;
 using Common.Log;
+using JetBrains.Annotations;
+using Lykke.Common.Log;
 using Lykke.Job.PayTransactionHandler.Core.Settings.JobSettings;
 using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.Job.EthereumCore.Contracts.Events.LykkePay;
+using Lykke.Job.PayTransactionHandler.Core;
 using Lykke.Job.PayTransactionHandler.Core.Exceptions;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Job.PayTransactionHandler.ErrorHandling;
@@ -19,17 +22,18 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
     public class EthereumEventsSubscriber : IStartable, IStopable
     {
         private readonly ILog _log;
+        private readonly ILogFactory _logFactory;
         private readonly RabbitMqSettings _settings;
         private RabbitMqSubscriber<TransferEvent> _subscriber;
         private readonly IEthereumTransferHandler _ethereumTransferHandler;
 
         public EthereumEventsSubscriber(
-            ILog log,
-            RabbitMqSettings settings,
-            IEthereumTransferHandler ethereumTransferHandler)
+            [NotNull] ILogFactory logFactory,
+            [NotNull] RabbitMqSettings settings,
+            [NotNull] IEthereumTransferHandler ethereumTransferHandler)
         {
-            _log = log?.CreateComponentScope(nameof(EthereumEventsSubscriber)) ??
-                   throw new ArgumentNullException(nameof(log));
+            _log = logFactory.CreateLog(this);
+            _logFactory = logFactory ?? throw new ArgumentNullException(nameof(logFactory));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _ethereumTransferHandler = ethereumTransferHandler ??
                                        throw new ArgumentNullException(nameof(ethereumTransferHandler));
@@ -43,11 +47,11 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
             settings.MakeDurable();
 
-            var dlxErrorHandlingStrategy = new DeadQueueErrorHandlingStrategy(_log, settings);
+            var dlxErrorHandlingStrategy = new DeadQueueErrorHandlingStrategy(_logFactory, settings);
 
-            _subscriber = new RabbitMqSubscriber<TransferEvent>(settings,
+            _subscriber = new RabbitMqSubscriber<TransferEvent>(_logFactory, settings,
                     new EthereumEventsErrorHandlingStrategy(
-                        new ResilientErrorHandlingStrategy(_log, settings,
+                        new ResilientErrorHandlingStrategy(_logFactory, settings,
                             retryTimeout: TimeSpan.FromSeconds(10),
                             next: dlxErrorHandlingStrategy),
                         dlxErrorHandlingStrategy))
@@ -55,14 +59,12 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
                 .SetMessageReadStrategy(new MessageReadQueueStrategy())
                 .Subscribe(ProcessMessageAsync)
                 .CreateDefaultBinding()
-                .SetLogger(_log)
                 .Start();
         }
 
         private async Task ProcessMessageAsync(TransferEvent arg)
         {
-            _log.WriteInfo(nameof(ProcessMessageAsync),
-                $"message = {arg.ToJson()}", "Got new message from ethereum core");
+            _log.Info("Got new message from ethereum core", arg.ToDetails());
 
             try
             {
@@ -70,25 +72,25 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
             }
             catch (UnknownErc20TokenException e)
             {
-                _log.WriteError(nameof(ProcessMessageAsync), new {e.TokenAddress}, e);
+                _log.Error(e, context: e.TokenAddress);
 
                 throw;
             }
             catch (UnknownErc20AssetException e)
             {
-                _log.WriteError(nameof(ProcessMessageAsync), new {e.Asset}, e);
+                _log.Error(e, context: e.Asset);
 
                 throw;
             }
             catch (UnexpectedEthereumTransferTypeException e)
             {
-                _log.WriteError(nameof(ProcessMessageAsync), new {transferType = e.TransferType.ToString()}, e);
+                _log.Error(e, context: e.TransferType.ToString());
 
                 throw;
             }
             catch (UnexpectedEthereumEventTypeException e)
             {
-                _log.WriteError(nameof(ProcessMessageAsync), new {eventType = e.EventType.ToString()}, e);
+                _log.Error(e, context: e.EventType.ToString());
 
                 throw;
             }
@@ -96,11 +98,11 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
             {
                 if (e.InnerException is ApiException apiException)
                 {
-                    _log.WriteError(nameof(ProcessMessageAsync), new
+                    _log.Error(e, context: new
                     {
                         message = e.Error?.ErrorMessage ?? apiException.Content,
                         errors = e.Error?.ModelErrors
-                    }, e);
+                    }.ToDetails());
                 }
 
                 throw;

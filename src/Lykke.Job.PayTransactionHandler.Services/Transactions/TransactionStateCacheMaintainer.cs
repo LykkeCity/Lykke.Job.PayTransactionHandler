@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Common.Log;
+using JetBrains.Annotations;
+using Lykke.Common.Log;
 using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Extensions;
 using Lykke.Job.PayTransactionHandler.Core.Services;
@@ -26,15 +28,15 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
         private const string CachePartitionName = "TransactionsState";
 
         public TransactionStateCacheMaintainer(
-            IMemoryCache cache,
-            IPayInternalClient payInternalClient,
+            [NotNull] IMemoryCache cache,
+            [NotNull] IPayInternalClient payInternalClient,
             int confirmationsLimit,
-            ILog log)
+            [NotNull] ILogFactory logFactory)
         {
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _payInternalClient = payInternalClient ?? throw new ArgumentNullException(nameof(payInternalClient));
             _confirmationsLimit = confirmationsLimit;
-            _log = log ?? throw new ArgumentNullException(nameof(log));
+            _log = logFactory.CreateLog(this);
         }
 
         public async Task WarmUpAsync()
@@ -68,14 +70,12 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
                         Identity = txState.Transaction.Id
                     });
 
-                    await _log.WriteInfoAsync(nameof(TransactionStateCacheMaintainer), nameof(WipeAsync),
-                        $"Cleared transaction {txState.Transaction.Id} from cache as expired");
+                    _log.Info($"Cleared transaction {txState.Transaction.Id} from cache as expired");
                 }
 
                 await _cache.RemoveWithPartitionAsync(CachePartitionName, txState.Transaction.Id);
 
-                await _log.WriteInfoAsync(nameof(TransactionStateCacheMaintainer), nameof(WipeAsync),
-                    $"Cleared transactions {txState.Transaction.Id} from cache with dudate = {txState.DueDate}");
+                _log.Info($"Cleared transactions {txState.Transaction.Id} from cache with duedate = {txState.DueDate}");
             }
         }
 

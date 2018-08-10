@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Common;
 using Common.Log;
+using Lykke.Common.Log;
 using Lykke.Job.PayTransactionHandler.Core;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.DiffService;
@@ -35,7 +35,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
             QBitNinjaClient qBitNinjaClient,
             IDiffService<PaymentBcnTransaction> diffService,
             IPayInternalClient payInternalClient,
-            ILog log,
+            ILogFactory logFactory,
             string bitcoinNetwork)
         {
             _cacheMaintainer = cacheMaintainer ?? throw new ArgumentNullException(nameof(cacheMaintainer));
@@ -43,7 +43,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
             _diffService = diffService ?? throw new ArgumentNullException(nameof(diffService));
             _payInternalClient = payInternalClient ?? throw new ArgumentNullException(nameof(payInternalClient));
             _bitcoinNetwork = Network.GetNetwork(bitcoinNetwork);
-            _log = log?.CreateComponentScope(nameof(WalletsScanService)) ?? throw new ArgumentNullException(nameof(log));
+            _log = logFactory.CreateLog(this);
         }
 
         public async Task ExecuteAsync()
@@ -60,22 +60,10 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                 try
                 {
                     balance = await _qBitNinjaClient.GetBalance(BitcoinAddress.Create(walletState.Address));
-
-                    //todo: remove logging
-                    await _log.WriteInfoAsync(nameof(ExecuteAsync), new
-                    {
-                        Blockchain = walletState.Blockchain.ToString(),
-                        walletState.Address,
-                        walletState.DueDate
-                    }.ToJson(), new
-                    {
-                        walletState,
-                        ninjaOperations = GetIncomingPaymentOperations(balance, walletState.Address)
-                    }.ToJson());
                 }
                 catch (Exception ex)
                 {
-                    await _log.WriteErrorAsync("Getting balance from ninja", walletState?.ToJson(), ex);
+                    _log.Error(ex, "Getting balance from ninja", walletState.ToDetails());
 
                     continue;
                 }
@@ -102,17 +90,17 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
                                 createRequest = tx.ToCreateRequest(txDetails, _bitcoinNetwork);
 
-                                await _log.WriteInfoAsync(nameof(ExecuteAsync), new
+                                _log.Info("New transaction detected", new
                                 {
                                     Hash = tx.Id,
                                     txDetails.FirstSeen
-                                }.ToJson(), "New transaction detected");
+                                }.ToDetails());
 
                                 await _payInternalClient.CreatePaymentTransactionAsync(createRequest);
                             }
                             catch (Exception ex)
                             {
-                                await _log.WriteErrorAsync(nameof(ExecuteAsync), createRequest?.ToJson(), ex);
+                                _log.Error(ex, context: createRequest.ToDetails());
 
                                 continue;
                             }
@@ -127,20 +115,20 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                             {
                                 updateRequest = tx.ToUpdateRequest();
 
-                                await _log.WriteInfoAsync(nameof(ExecuteAsync), new
+                                _log.Info("Transaction update detected", new
                                 {
                                     Hash = tx.Id,
                                     tx.WalletAddress,
                                     Blockchain = tx.Blockchain.ToString(),
                                     tx.Amount,
                                     tx.Confirmations
-                                }.ToJson(), "Transaction update detected");
+                                }.ToDetails());
 
                                 await _payInternalClient.UpdateTransactionAsync(updateRequest);
                             }
                             catch (Exception ex)
                             {
-                                await _log.WriteErrorAsync(nameof(ExecuteAsync), updateRequest?.ToJson(), ex);
+                                _log.Error(ex, context: updateRequest.ToDetails());
 
                                 continue;
                             }
@@ -159,7 +147,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                 }
                 catch (Exception ex)
                 {
-                    await _log.WriteErrorAsync("Updating wallets cache", walletState.ToJson(), ex);
+                    _log.Error(ex, "Updating wallets cache", walletState.ToDetails());
 
                     continue;
                 }

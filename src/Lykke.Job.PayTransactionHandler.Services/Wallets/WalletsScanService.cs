@@ -63,7 +63,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                 }
                 catch (Exception ex)
                 {
-                    _log.Error(ex, "Getting balance from ninja", walletState);
+                    _log.Error(ex, "Getting balance from ninja", walletState.ToDetails());
 
                     continue;
                 }
@@ -94,13 +94,13 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                                 {
                                     Hash = tx.Id,
                                     txDetails.FirstSeen
-                                });
+                                }.ToDetails());
 
                                 await _payInternalClient.CreatePaymentTransactionAsync(createRequest);
                             }
                             catch (Exception ex)
                             {
-                                _log.Error(ex, context: createRequest);
+                                _log.Error(ex, context: createRequest.ToDetails());
 
                                 continue;
                             }
@@ -122,13 +122,13 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                                     Blockchain = tx.Blockchain.ToString(),
                                     tx.Amount,
                                     tx.Confirmations
-                                });
+                                }.ToDetails());
 
                                 await _payInternalClient.UpdateTransactionAsync(updateRequest);
                             }
                             catch (Exception ex)
                             {
-                                _log.Error(ex, context: updateRequest);
+                                _log.Error(ex, context: updateRequest.ToDetails());
 
                                 continue;
                             }
@@ -147,7 +147,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                 }
                 catch (Exception ex)
                 {
-                    _log.Error(ex, "Updating wallets cache", walletState);
+                    _log.Error(ex, "Updating wallets cache", walletState.ToDetails());
 
                     continue;
                 }

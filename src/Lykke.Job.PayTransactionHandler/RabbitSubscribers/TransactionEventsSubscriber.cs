@@ -5,6 +5,7 @@ using Common;
 using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Log;
+using Lykke.Job.PayTransactionHandler.Core;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.TransactionStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
@@ -55,7 +56,7 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
         private async Task ProcessMessageAsync(NewTransactionMessage arg)
         {
-            _log.Info("Got a message about new transaction", arg);
+            _log.Info("Got a message about new transaction", arg.ToDetails());
 
             await _transactionsCache.SetItemAsync(new TransactionState
             {

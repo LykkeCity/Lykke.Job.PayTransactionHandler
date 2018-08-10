@@ -170,7 +170,7 @@ namespace Lykke.Job.PayTransactionHandler
             }
             catch (Exception ex)
             {
-                Log?.Critical(nameof(CleanUp), ex);
+                Log?.Critical(ex);
                 (Log as IDisposable)?.Dispose();
                 throw;
             }

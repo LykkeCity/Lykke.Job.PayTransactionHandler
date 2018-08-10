@@ -6,6 +6,7 @@ using Common;
 using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Log;
+using Lykke.Job.PayTransactionHandler.Core;
 using Lykke.Job.PayTransactionHandler.Core.Domain.Common;
 using Lykke.Job.PayTransactionHandler.Core.Domain.WalletsStateCache;
 using Lykke.Job.PayTransactionHandler.Core.Services;
@@ -56,7 +57,7 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
         private async Task ProcessMessageAsync(NewWalletMessage arg)
         {
-            _log.Info("Got a message about new wallet", arg);
+            _log.Info("Got a message about new wallet", arg.ToDetails());
 
             await _walletsCache.SetItemAsync(new WalletState
             {

@@ -9,6 +9,7 @@ using Lykke.Common.Log;
 using Lykke.Job.PayTransactionHandler.Core.Settings.JobSettings;
 using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.Job.EthereumCore.Contracts.Events.LykkePay;
+using Lykke.Job.PayTransactionHandler.Core;
 using Lykke.Job.PayTransactionHandler.Core.Exceptions;
 using Lykke.Job.PayTransactionHandler.Core.Services;
 using Lykke.Job.PayTransactionHandler.ErrorHandling;
@@ -63,7 +64,7 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
 
         private async Task ProcessMessageAsync(TransferEvent arg)
         {
-            _log.Info("Got new message from ethereum core", arg);
+            _log.Info("Got new message from ethereum core", arg.ToDetails());
 
             try
             {
@@ -71,25 +72,25 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
             }
             catch (UnknownErc20TokenException e)
             {
-                _log.Error(e, context: new {e.TokenAddress});
+                _log.Error(e, context: e.TokenAddress);
 
                 throw;
             }
             catch (UnknownErc20AssetException e)
             {
-                _log.Error(e, context: new {e.Asset});
+                _log.Error(e, context: e.Asset);
 
                 throw;
             }
             catch (UnexpectedEthereumTransferTypeException e)
             {
-                _log.Error(e, context: new {transferType = e.TransferType.ToString()});
+                _log.Error(e, context: e.TransferType.ToString());
 
                 throw;
             }
             catch (UnexpectedEthereumEventTypeException e)
             {
-                _log.Error(e, context: new {eventType = e.EventType.ToString()});
+                _log.Error(e, context: e.EventType.ToString());
 
                 throw;
             }
@@ -101,7 +102,7 @@ namespace Lykke.Job.PayTransactionHandler.RabbitSubscribers
                     {
                         message = e.Error?.ErrorMessage ?? apiException.Content,
                         errors = e.Error?.ModelErrors
-                    });
+                    }.ToDetails());
                 }
 
                 throw;

@@ -75,7 +75,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
 
                 await _cache.RemoveWithPartitionAsync(CachePartitionName, txState.Transaction.Id);
 
-                _log.Info($"Cleared transactions {txState.Transaction.Id} from cache with dudate = {txState.DueDate}");
+                _log.Info($"Cleared transactions {txState.Transaction.Id} from cache with duedate = {txState.DueDate}");
             }
         }
 

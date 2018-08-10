@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Common;
 using Common.Log;
 using Lykke.Common.Log;
 using Lykke.Job.PayTransactionHandler.Core;
@@ -58,7 +59,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
                 }
                 catch (Exception ex)
                 {
-                    _log.Error(ex, "Getting transaction from ninja", cacheTxState);
+                    _log.Error(ex, "Getting transaction from ninja", cacheTxState.ToDetails());
 
                     continue;
                 }
@@ -78,7 +79,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
                     {
                         case DiffState.New:
 
-                            _log.Warning("New transactions are not supported by watcher", context: tx);
+                            _log.Warning("New transactions are not supported by watcher", context: tx.ToDetails());
 
                             break;
 
@@ -94,7 +95,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
                             }
                             catch (Exception ex)
                             {
-                                _log.Error(ex, context: updateRequest);
+                                _log.Error(ex, context: updateRequest.ToDetails());
                             }
 
                             break;
@@ -112,7 +113,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
                     catch (Exception ex)
                     {
 
-                        _log.Error(ex, "Updating transaction cache", cacheTxState);
+                        _log.Error(ex, "Updating transaction cache", cacheTxState.ToDetails());
 
                         continue;
                     }

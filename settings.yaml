@@ -1,0 +1,77 @@
+AssetsServiceClient: 
+  ServiceUrl:
+    settings-key: AssetsServiceUrl
+    types: [ Tag ]
+  ExpirationPeriod: 
+    settings-key: AssetsServiceExpirationPeriod
+    types: [ Tag ]
+MonitoringServiceClient:
+  MonitoringServiceUrl:
+    settings-key: MonitoringServiceUrl
+    types: [ Tag ]
+NinjaServiceClient: 
+  ServiceUrl: 
+    settings-key: NinjaServiceUrl
+    types: [ Tag ]
+OperationsServiceClient:
+  ServiceUrl:
+    settings-key: OperationsServiceUrl
+    types: [ Tag ]
+PayInternalServiceClient:
+  ServiceUrl:
+    settings-key: PayInternalServiceUrl
+    types: [ Tag ]
+PayTransactionHandlerJob:
+  Db:
+    LogsConnString:
+      settings-key: LykkePayLogsConnString
+      types: [ AzureTableStorage, Tag ]
+  Rabbit:
+    ConnectionString:
+      settings-key: RabbitPay
+      types: [ RabbitMq, Tag ]
+    WalletsExchangeName:
+      settings-key: LykkePay-TransactionHandler-WalletExchangeName
+      types: [ Tag ]
+    TransactionsExchangeName:
+      settings-key: LykkePay-TransactionHandler-TxExchangeName
+      types: [ Tag ]
+    EthereumEventsExchangeName: 
+      settings-key: LykkePay-TransactionHandler-EthereumEventsExchangeName
+      types: [ Tag ]
+  WalletsScanPeriod:
+    settings-key: LP-TransactionHandler-WalletsScanPeriod
+    types: [ Tag ]
+  TransactionsScanPeriod:
+    settings-key: LP-TransactionHandler-TransactionsScanPeriod
+    types: [ Tag ]
+  CacheExpirationHandlingPeriod:
+    settings-key: LP-TransactionHandler-CacheExpirationHandlingPeriod
+    types: [ Tag ]
+  Blockchain:
+    ConfirmationsToSucceed:
+      settings-key: LP-TransactionHandler-ConfirmationsToSucceed
+      types: [ Tag ]
+  Bitcoin:
+    Network:
+      settings-key: LP-TransactionHandler-BitcoinNetwork
+      types: [ Tag ]
+  Cqrs:
+    RetryDelayInMilliseconds:
+      settings-key: LP-TransactionHandler-CqrsRetryDelay
+      types: [ Tag ]
+SlackNotifications:
+  AzureQueue:
+    ConnectionString:
+      settings-key: SlackNotificationsConnString
+      types: [ AzureTableStorage ]
+    QueueName:
+      settings-key: SlackQueueName
+      types: [ AzureTableStorage ]
+Transports:
+  ClientRabbitMqConnectionString:
+    settings-key: RabbitPay
+    types: [ RabbitMq, Tag ]
+  MeRabbitMqConnectionString:
+    settings-key: RabbitME
+    types: [ RabbitMq, Tag ]

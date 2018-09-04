@@ -33,7 +33,7 @@ PayTransactionHandlerJob:
     TransactionsExchangeName: pay.transactionevents
     EthereumEventsExchangeName: ethereum.core.lykkepay
     EthereumConnectionString: 
-      settings-key: LP-RabbitConnString
+      settings-key: RabbitPay
       types: [ RabbitMq ]
   WalletsScanPeriod:
     settings-key: LP-TransactionHandler-WalletsScanPeriod

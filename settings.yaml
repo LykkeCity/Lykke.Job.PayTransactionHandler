@@ -29,9 +29,15 @@ PayTransactionHandlerJob:
     LykkePayConnectionString:
       settings-key: RabbitPay
       types: [ RabbitMq ]
-    WalletsExchangeName: pay.wallets
-    TransactionsExchangeName: pay.transactionevents
-    EthereumEventsExchangeName: ethereum.core.lykkepay
+    WalletsExchangeName:
+      settings-key: LykkePay-TransactionHandler-WalletExchangeName
+      types: [ Tag ]
+    TransactionsExchangeName:
+      settings-key: LykkePay-TransactionHandler-TxExchangeName
+      types: [ Tag ]
+    EthereumEventsExchangeName: 
+      settings-key: LykkePay-TransactionHandler-EthereumEventsExchangeName
+      types: [ Tag ]
     EthereumConnectionString: 
       settings-key: RabbitPay
       types: [ RabbitMq ]

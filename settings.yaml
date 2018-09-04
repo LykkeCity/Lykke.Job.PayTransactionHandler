@@ -1,0 +1,64 @@
+AssetsServiceClient: 
+  ServiceUrl:
+    settings-key: AssetsServiceUrl
+    types: [ Tag ]
+  ExpirationPeriod: 
+    settings-key: AssetsServiceExpirationPeriod
+    types: [ Tag ]
+MonitoringServiceClient:
+  MonitoringServiceUrl:
+    settings-key: MonitoringServiceUrl
+NinjaServiceClient: 
+  ServiceUrl: 
+    settings-key: NinjaServiceUrl
+    types: [ Tag ]
+OperationsServiceClient:
+  ServiceUrl:
+    settings-key: OperationsServiceUrl
+    types: [ Tag ]
+PayInternalServiceClient:
+  ServiceUrl:
+    settings-key: PayInternalServiceUrl
+    types: [ Tag ]
+PayTransactionHandlerJob:
+  Db:
+    LogsConnString:
+      settings-key: LykkePayLogsConnString
+      types: [ AzureTableStorage ]
+  Rabbit:
+    ConnectionString:
+      settings-key: LP-RabbitConnString
+      types: [ RabbitMq ]
+    WalletsExchangeName: pay.wallets
+    TransactionsExchangeName: pay.transactionevents
+    EthereumEventsExchangeName: ethereum.core.lykkepay
+  WalletsScanPeriod:
+    settings-key: LP-TransactionHandler-WalletsScanPeriod
+  TransactionsScanPeriod:
+    settings-key: LP-TransactionHandler-TransactionsScanPeriod
+  CacheExpirationHandlingPeriod:
+    settings-key: LP-TransactionHandler-CacheExpirationHandlingPeriod
+  Blockchain:
+    ConfirmationsToSucceed:
+      settings-key: LP-TransactionHandler-ConfirmationsToSucceed
+  Bitcoin:
+    Network:
+      settings-key: LP-TransactionHandler-BitcoinNetwork
+  Cqrs:
+    RetryDelayInMilliseconds:
+      settings-key: LP-TransactionHandler-CqrsRetryDelay
+SlackNotifications:
+  AzureQueue:
+    ConnectionString:
+      settings-key: SlackNotificationsConnString
+      types: [ AzureTableStorage ]
+    QueueName:
+      settings-key: SlackQueueName
+      types: [ AzureTableStorage ]
+Transports:
+  ClientRabbitMqConnectionString:
+    settings-key: ClientRabbitMqConnectionString
+    types: [ RabbitMq ]
+  MeRabbitMqConnectionString:
+    settings-key: GeneralRabbitMqConnectionString
+    types: [ RabbitMq ]

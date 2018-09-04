@@ -8,6 +8,7 @@ AssetsServiceClient:
 MonitoringServiceClient:
   MonitoringServiceUrl:
     settings-key: MonitoringServiceUrl
+    types: [ Tag ]
 NinjaServiceClient: 
   ServiceUrl: 
     settings-key: NinjaServiceUrl
@@ -24,11 +25,11 @@ PayTransactionHandlerJob:
   Db:
     LogsConnString:
       settings-key: LykkePayLogsConnString
-      types: [ AzureTableStorage ]
+      types: [ AzureTableStorage, Tag ]
   Rabbit:
     ConnectionString:
       settings-key: RabbitPay
-      types: [ RabbitMq ]
+      types: [ RabbitMq, Tag ]
     WalletsExchangeName:
       settings-key: LykkePay-TransactionHandler-WalletExchangeName
       types: [ Tag ]
@@ -40,19 +41,25 @@ PayTransactionHandlerJob:
       types: [ Tag ]
   WalletsScanPeriod:
     settings-key: LP-TransactionHandler-WalletsScanPeriod
+    types: [ Tag ]
   TransactionsScanPeriod:
     settings-key: LP-TransactionHandler-TransactionsScanPeriod
+    types: [ Tag ]
   CacheExpirationHandlingPeriod:
     settings-key: LP-TransactionHandler-CacheExpirationHandlingPeriod
+    types: [ Tag ]
   Blockchain:
     ConfirmationsToSucceed:
       settings-key: LP-TransactionHandler-ConfirmationsToSucceed
+      types: [ Tag ]
   Bitcoin:
     Network:
       settings-key: LP-TransactionHandler-BitcoinNetwork
+      types: [ Tag ]
   Cqrs:
     RetryDelayInMilliseconds:
       settings-key: LP-TransactionHandler-CqrsRetryDelay
+      types: [ Tag ]
 SlackNotifications:
   AzureQueue:
     ConnectionString:
@@ -64,7 +71,7 @@ SlackNotifications:
 Transports:
   ClientRabbitMqConnectionString:
     settings-key: RabbitPay
-    types: [ RabbitMq ]
+    types: [ RabbitMq, Tag ]
   MeRabbitMqConnectionString:
     settings-key: RabbitME
-    types: [ RabbitMq ]
+    types: [ RabbitMq, Tag ]

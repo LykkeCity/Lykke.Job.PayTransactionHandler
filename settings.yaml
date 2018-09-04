@@ -27,7 +27,7 @@ PayTransactionHandlerJob:
       types: [ AzureTableStorage ]
   Rabbit:
     LykkePayConnectionString:
-      settings-key: LP-RabbitConnString
+      settings-key: RabbitPay
       types: [ RabbitMq ]
     WalletsExchangeName: pay.wallets
     TransactionsExchangeName: pay.transactionevents
@@ -60,8 +60,8 @@ SlackNotifications:
       types: [ AzureTableStorage ]
 Transports:
   ClientRabbitMqConnectionString:
-    settings-key: ClientRabbitMqConnectionString
+    settings-key: RabbitPay
     types: [ RabbitMq ]
   MeRabbitMqConnectionString:
-    settings-key: GeneralRabbitMqConnectionString
+    settings-key: RabbitME
     types: [ RabbitMq ]

@@ -26,7 +26,7 @@ PayTransactionHandlerJob:
       settings-key: LykkePayLogsConnString
       types: [ AzureTableStorage ]
   Rabbit:
-    ConnectionString:
+    LykkePayConnectionString:
       settings-key: LP-RabbitConnString
       types: [ RabbitMq ]
     WalletsExchangeName: pay.wallets

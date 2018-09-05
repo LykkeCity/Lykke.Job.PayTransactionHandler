@@ -31,7 +31,7 @@ PayTransactionHandlerJob:
       settings-key: RabbitPay
       types: [ RabbitMq, Tag ]
     EthereumConnectionString:
-      settings-key: RabbitPay
+      settings-key: RabbitEthereum
       types: [ RabbitMq, Tag, Optional ]
     LykkePayConnectionString:
       settings-key: RabbitPay

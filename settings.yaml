@@ -27,11 +27,8 @@ PayTransactionHandlerJob:
       settings-key: LykkePayLogsConnString
       types: [ AzureTableStorage, Tag ]
   Rabbit:
-    ConnectionString:
-      settings-key: RabbitPay
-      types: [ RabbitMq, Tag ]
     EthereumConnectionString:
-      settings-key: RabbitPay
+      settings-key: RabbitBlockchains
       types: [ RabbitMq, Tag, Optional ]
     LykkePayConnectionString:
       settings-key: RabbitPay

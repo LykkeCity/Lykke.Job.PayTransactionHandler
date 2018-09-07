@@ -71,10 +71,3 @@ SlackNotifications:
     QueueName:
       settings-key: SlackQueueName
       types: [ AzureTableStorage ]
-Transports:
-  ClientRabbitMqConnectionString:
-    settings-key: RabbitPay
-    types: [ RabbitMq, Tag ]
-  MeRabbitMqConnectionString:
-    settings-key: RabbitME
-    types: [ RabbitMq, Tag ]

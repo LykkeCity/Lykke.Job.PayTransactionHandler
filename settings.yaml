@@ -73,8 +73,5 @@ SlackNotifications:
       types: [ AzureTableStorage ]
 Transports:
   ClientRabbitMqConnectionString:
-    settings-key: RabbitPay
-    types: [ RabbitMq, Tag ]
-  MeRabbitMqConnectionString:
-    settings-key: RabbitME
+    settings-key: RabbitSagas
     types: [ RabbitMq, Tag ]

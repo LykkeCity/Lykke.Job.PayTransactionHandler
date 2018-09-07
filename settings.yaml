@@ -71,3 +71,7 @@ SlackNotifications:
     QueueName:
       settings-key: SlackQueueName
       types: [ AzureTableStorage ]
+Transports:
+  ClientRabbitMqConnectionString:
+    settings-key: RabbitSagas
+    types: [ RabbitMq, Tag ]

@@ -42,6 +42,9 @@ PayTransactionHandlerJob:
     EthereumEventsExchangeName: 
       settings-key: LykkePay-TransactionHandler-EthereumEventsExchangeName
       types: [ Tag ]
+    EthereumEventsQueueName:
+      settings-key: LykkePay-TransactionHandler-EthereumEventsQueueName
+      types: [ Tag ]
   WalletsScanPeriod:
     settings-key: LP-TransactionHandler-WalletsScanPeriod
     types: [ Tag ]

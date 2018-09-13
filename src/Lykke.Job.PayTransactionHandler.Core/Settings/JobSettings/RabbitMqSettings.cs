@@ -7,5 +7,6 @@
         public string WalletsExchangeName { get; set; }
         public string TransactionsExchangeName { get; set; }
         public string EthereumEventsExchangeName { get; set; }
+        public string EthereumEventsQueueName { get; set; }
     }
 }

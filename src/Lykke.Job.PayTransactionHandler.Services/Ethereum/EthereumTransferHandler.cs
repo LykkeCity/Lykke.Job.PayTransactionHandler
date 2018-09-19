@@ -8,6 +8,7 @@ using Lykke.Job.EthereumCore.Contracts.Enums.LykkePay;
 using Lykke.Job.EthereumCore.Contracts.Events.LykkePay;
 using Lykke.Job.PayTransactionHandler.Core.Exceptions;
 using Lykke.Job.PayTransactionHandler.Core.Services;
+using Lykke.Job.PayTransactionHandler.Services.Extensions;
 using Lykke.Service.Assets.Client;
 using Lykke.Service.Assets.Client.Models;
 using Lykke.Service.PayInternal.Client;
@@ -55,7 +56,8 @@ namespace Lykke.Job.PayTransactionHandler.Services.Ethereum
                             opt.Items["AssetMultiplier"] = asset.MultiplierPower;
                             opt.Items["AssetAccuracy"] = asset.Accuracy;
                         });
-                    await _payInternalClient.RegisterEthereumInboundTransactionAsync(inboundTransactionRequest);
+                    await _log.LogPayInternalExceptionIfAny(() =>
+                        _payInternalClient.RegisterEthereumInboundTransactionAsync(inboundTransactionRequest));
                     break;
 
                 case SenderType.EthereumCore:
@@ -66,27 +68,31 @@ namespace Lykke.Job.PayTransactionHandler.Services.Ethereum
                                 transferEvent, opt =>
                                 {
                                     opt.Items["AssetId"] = asset.DisplayId;
-                                    opt.Items["AssetMultiplier"] = asset.MultiplierPower;
+                                    opt.Items["AssetMultiplier"] = asset.MultiplierPower; 
                                     opt.Items["AssetAccuracy"] = asset.Accuracy;
                                 });
-                            await _payInternalClient.RegisterEthereumOutboundTransactionAsync(
-                                outboundTransactionRequest);
+                            await _log.LogPayInternalExceptionIfAny(() =>
+                                _payInternalClient
+                                    .RegisterEthereumOutboundTransactionAsync(outboundTransactionRequest));
                             break;
                         case EventType.Failed:
-                            await _payInternalClient.FailEthereumOutboundTransactionAsync(
-                                Mapper.Map<FailOutboundTxModel>(transferEvent));
+                            await _log.LogPayInternalExceptionIfAny(() =>
+                                _payInternalClient.FailEthereumOutboundTransactionAsync(
+                                    Mapper.Map<FailOutboundTxModel>(transferEvent)));
                             break;
                         case EventType.Completed:
-                            await _payInternalClient.CompleteEthereumOutboundTransactionAsync(
-                                Mapper.Map<CompleteOutboundTxModel>(transferEvent, opt =>
-                                {
-                                    opt.Items["AssetMultiplier"] = asset.MultiplierPower;
-                                    opt.Items["AssetAccuracy"] = asset.Accuracy;
-                                }));
+                            await _log.LogPayInternalExceptionIfAny(() =>
+                                _payInternalClient.CompleteEthereumOutboundTransactionAsync(
+                                    Mapper.Map<CompleteOutboundTxModel>(transferEvent, opt =>
+                                    {
+                                        opt.Items["AssetMultiplier"] = asset.MultiplierPower;
+                                        opt.Items["AssetAccuracy"] = asset.Accuracy;
+                                    })));
                             break;
                         case EventType.NotEnoughFunds:
-                            await _payInternalClient.FailEthereumOutboundTransactionAsync(
-                                Mapper.Map<NotEnoughFundsOutboundTxModel>(transferEvent));
+                            await _log.LogPayInternalExceptionIfAny(() =>
+                                _payInternalClient.FailEthereumOutboundTransactionAsync(
+                                    Mapper.Map<NotEnoughFundsOutboundTxModel>(transferEvent)));
                             break;
                         default: throw new UnexpectedEthereumEventTypeException(transferEvent.EventType);
                     }

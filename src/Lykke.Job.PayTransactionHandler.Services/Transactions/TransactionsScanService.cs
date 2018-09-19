@@ -91,7 +91,8 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
                             {
                                 updateRequest = tx.ToUpdateRequest(bcnTransactionState.FirstSeen.DateTime);
 
-                                await _payInternalClient.UpdateTransactionAsync(updateRequest);
+                                await _log.LogPayInternalExceptionIfAny(() =>
+                                    _payInternalClient.UpdateTransactionAsync(updateRequest));
                             }
                             catch (Exception ex)
                             {

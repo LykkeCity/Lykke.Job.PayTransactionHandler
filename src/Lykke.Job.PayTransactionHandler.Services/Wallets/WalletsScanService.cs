@@ -96,7 +96,8 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                                     txDetails.FirstSeen
                                 }.ToDetails());
 
-                                await _payInternalClient.CreatePaymentTransactionAsync(createRequest);
+                                await _log.LogPayInternalExceptionIfAny(() =>
+                                    _payInternalClient.CreatePaymentTransactionAsync(createRequest));
                             }
                             catch (Exception ex)
                             {
@@ -124,7 +125,8 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                                     tx.Confirmations
                                 }.ToDetails());
 
-                                await _payInternalClient.UpdateTransactionAsync(updateRequest);
+                                await _log.LogPayInternalExceptionIfAny(() =>
+                                    _payInternalClient.UpdateTransactionAsync(updateRequest));
                             }
                             catch (Exception ex)
                             {

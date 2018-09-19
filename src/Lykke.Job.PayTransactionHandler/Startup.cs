@@ -73,7 +73,7 @@ namespace Lykke.Job.PayTransactionHandler
                     appSettings.CurrentValue.SlackNotifications.AzureQueue.QueueName);
 
                 builder.RegisterModule(new JobModule(appSettings));
-                builder.RegisterModule(new CqrsModule(appSettings));
+                // builder.RegisterModule(new CqrsModule(appSettings));
 
                 builder.Populate(services);
 

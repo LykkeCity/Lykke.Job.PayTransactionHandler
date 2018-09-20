@@ -12,6 +12,7 @@ using Lykke.Service.PayInternal.Client;
 using Lykke.Service.PayInternal.Client.Models.Transactions;
 using Lykke.Service.PayInternal.Client.Models.Wallets;
 using Lykke.Job.PayTransactionHandler.Services.Extensions;
+using Lykke.Service.PayInternal.Client.Exceptions;
 using Lykke.Service.PayInternal.Client.Models;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -63,12 +64,13 @@ namespace Lykke.Job.PayTransactionHandler.Services.Transactions
             {
                 if (txState.IsExpired())
                 {
-                    await _payInternalClient.SetTransactionExpiredAsync(new TransactionExpiredRequest
-                    {
-                        Blockchain = Enum.Parse<BlockchainType>(txState.Transaction.Blockchain.ToString()),
-                        IdentityType = TransactionIdentityType.Hash,
-                        Identity = txState.Transaction.Id
-                    });
+                    await _log.LogPayInternalExceptionIfAny(() => _payInternalClient.SetTransactionExpiredAsync(
+                        new TransactionExpiredRequest
+                        {
+                            Blockchain = Enum.Parse<BlockchainType>(txState.Transaction.Blockchain.ToString()),
+                            IdentityType = TransactionIdentityType.Hash,
+                            Identity = txState.Transaction.Id
+                        }));
 
                     _log.Info($"Cleared transaction {txState.Transaction.Id} from cache as expired");
                 }

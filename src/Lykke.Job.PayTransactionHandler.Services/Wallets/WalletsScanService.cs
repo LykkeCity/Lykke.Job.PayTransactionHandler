@@ -68,7 +68,9 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                     continue;
                 }
 
-                IEnumerable<PaymentBcnTransaction> bcnTransactions = GetIncomingPaymentOperations(balance, walletState.Address).ToList();
+                IEnumerable<PaymentBcnTransaction> bcnTransactions =
+                    GetIncomingPaymentOperations(balance, walletState.Address)?.ToList() ??
+                    new List<PaymentBcnTransaction>();
 
                 IEnumerable<PaymentBcnTransaction> cacheTransactions = walletState.Transactions;
 

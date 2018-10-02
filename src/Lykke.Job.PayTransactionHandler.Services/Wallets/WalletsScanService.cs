@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Common;
 using Common.Log;
 using Lykke.Common.Log;
 using Lykke.Job.PayTransactionHandler.Core;
@@ -76,6 +77,20 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
                 IEnumerable<DiffResult<PaymentBcnTransaction>> diff = _diffService.Diff(cacheTransactions, bcnTransactions);
 
+                // catching case when ninja returns no transactions but should
+                if (cacheTransactions.Any() && !bcnTransactions.Any())
+                {
+                    _log.Info("There are no transactions from ninja, but there are transactions in cache",
+                        $"wallet: {walletState.Address}, walletState: {walletState.ToJson()}");
+                }
+
+                // catching case when there are any differences between ninja state and local cache state
+                if (diff.Any())
+                {
+                    _log.Info("The difference between cache state and ninja detected",
+                        $"wallet: {walletState.Address}, old txs: {walletState.Transactions.ToJson()}, new txs: {bcnTransactions.ToJson()}");
+                }
+
                 foreach (var diffResult in diff)
                 {
                     var tx = diffResult.Object;
@@ -92,11 +107,8 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
 
                                 createRequest = tx.ToCreateRequest(txDetails, _bitcoinNetwork);
 
-                                _log.Info("New transaction detected", new
-                                {
-                                    Hash = tx.Id,
-                                    txDetails.FirstSeen
-                                }.ToDetails());
+                                _log.Info("New transaction detected",
+                                    $"wallet: {walletState.Address}, Hash: {tx.Id}, FirstSeen: {txDetails.FirstSeen}");
 
                                 await _log.LogPayInternalExceptionIfAny(() =>
                                     _payInternalClient.CreatePaymentTransactionAsync(createRequest));
@@ -118,14 +130,8 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                             {
                                 updateRequest = tx.ToUpdateRequest();
 
-                                _log.Info("Transaction update detected", new
-                                {
-                                    Hash = tx.Id,
-                                    tx.WalletAddress,
-                                    Blockchain = tx.Blockchain.ToString(),
-                                    tx.Amount,
-                                    tx.Confirmations
-                                }.ToDetails());
+                                _log.Info("Transaction update detected",
+                                    $"wallet: {walletState.Address}, new tx state: {tx.ToJson()}");
 
                                 await _log.LogPayInternalExceptionIfAny(() =>
                                     _payInternalClient.UpdateTransactionAsync(updateRequest));

@@ -149,7 +149,10 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                     }
                 }
 
-                walletState.Transactions = bcnTransactions;
+                if (bcnTransactions.Any())
+                {
+                    walletState.Transactions = bcnTransactions;
+                }
 
                 try
                 {

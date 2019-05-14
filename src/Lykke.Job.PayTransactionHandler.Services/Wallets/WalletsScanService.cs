@@ -91,6 +91,9 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                         $"wallet: {walletState.Address}, old txs: {walletState.Transactions.ToJson()}, new txs: {bcnTransactions.ToJson()}");
                 }
 
+                // approach to exit loop with switch statement inside
+                bool isSyncError = false;
+                
                 foreach (var diffResult in diff)
                 {
                     var tx = diffResult.Object;
@@ -117,7 +120,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                             {
                                 _log.Error(ex, context: createRequest.ToDetails());
 
-                                continue;
+                                isSyncError = true;
                             }
 
                             break;
@@ -140,13 +143,16 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                             {
                                 _log.Error(ex, context: updateRequest.ToDetails());
 
-                                continue;
+                                isSyncError = true;
                             }
 
                             break;
 
                         default: throw new Exception("Unknown transactions diff state");
                     }
+                    
+                    // stop changes processing in case there is PayInternal sync error
+                    if (isSyncError) break;
                 }
 
                 if (bcnTransactions.Any())
@@ -154,15 +160,21 @@ namespace Lykke.Job.PayTransactionHandler.Services.Wallets
                     walletState.Transactions = bcnTransactions;
                 }
 
-                try
+                // will sync internal cache with blockchain only if there were no errors while processing changes
+                // otherwise the changes will be processed again in the next job cycle
+                // WARNING: the approach will work only for single transactions update
+                if (!isSyncError)
                 {
-                    await _cacheMaintainer.SetItemAsync(walletState);
-                }
-                catch (Exception ex)
-                {
-                    _log.Error(ex, "Updating wallets cache", walletState.ToDetails());
+                    try
+                    {
+                        await _cacheMaintainer.SetItemAsync(walletState);
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.Error(ex, "Updating wallets cache", walletState.ToDetails());
 
-                    continue;
+                        continue;
+                    }
                 }
             }
         }

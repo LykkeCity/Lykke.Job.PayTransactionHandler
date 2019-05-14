@@ -75,6 +75,12 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
 
         public static CreateTransactionRequest ToCreateRequest(this PaymentBcnTransaction src, GetTransactionResponse txDetails, Network network)
         {
+            if (src == null)
+                throw new ArgumentNullException(nameof(src));
+            
+            if (txDetails == null)
+                throw new ArgumentNullException(nameof(txDetails));
+                    
             return new CreateTransactionRequest
             {
                 WalletAddress = src.WalletAddress,
@@ -85,7 +91,7 @@ namespace Lykke.Job.PayTransactionHandler.Services.Extensions
                 Hash = src.Id,
                 Blockchain = Enum.Parse<Service.PayInternal.Client.Models.BlockchainType>(src.Blockchain.ToString()),
                 AssetId = src.AssetId,
-                SourceWalletAddresses = txDetails.GetSourceWalletAddresses(network).Select(x => x.ToString()).ToArray(),
+                SourceWalletAddresses = txDetails.GetSourceWalletAddresses(network)?.Select(x => x.ToString()).ToArray(),
                 IdentityType =  TransactionIdentityType.Hash,
                 Identity = src.Id
             };
